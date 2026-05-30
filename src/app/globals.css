@@ -1,0 +1,55 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap');
+
+:root {
+  --font-geist: 'Geist', sans-serif;
+  --font-instrument: 'Instrument Serif', serif;
+  --font-geist-mono: 'Geist Mono', monospace;
+}
+
+* { box-sizing: border-box; }
+
+body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+
+/* ── Underline input style ───────────────────────────────────────────────── */
+.field-line {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1.5px solid #e2e8f0;
+  padding: 11px 0 11px;
+  font-size: 15px;
+  font-family: var(--font-geist), sans-serif;
+  line-height: 1.5;
+  color: #0f172a;
+  outline: none;
+  transition: border-color 0.18s ease;
+  display: block;
+}
+.field-line:focus { border-bottom-color: #fe3030; }
+.field-line::placeholder { color: #94a3b8; }
+
+.field-line-area {
+  resize: vertical;
+  min-height: 88px;
+  padding: 11px 0;
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* ── Focus ring ──────────────────────────────────────────────────────────── */
+:focus-visible { outline: 2px solid #fe3030; outline-offset: 2px; }
+
+/* ── Print ───────────────────────────────────────────────────────────────── */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white !important; }
+  .print-break-avoid { break-inside: avoid; page-break-inside: avoid; }
+  .field-line { border-bottom-color: #cbd5e1 !important; }
+}
