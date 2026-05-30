@@ -3,7 +3,8 @@ import { getFormBySlug } from '@/forms';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL        ?? 'admin@maxxlab.tech';
-const BASE_URL   = process.env.NEXT_PUBLIC_BASE_URL ?? 'http://localhost:3000';
+const BASE_URL   = process.env.NEXT_PUBLIC_BASE_URL
+  ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
 // ── Shared logo img tag (SVG hosted in /public) ───────────────────────────────
 const logoImg = (size = 44) =>
