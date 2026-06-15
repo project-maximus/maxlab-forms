@@ -1,16 +1,21 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { FormConfig, FormField, FieldOption } from '@/lib/types';
+import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
 import Logo from './Logo';
 import clsx from 'clsx';
 
 // ── Value helpers ─────────────────────────────────────────────────────────────
-type FormValues = Record<string, string | string[]>;
+type FormValues = Record<string, string | string[] | FileValue[]>;
 const str = (v: FormValues, id: string) => (typeof v[id] === 'string' ? (v[id] as string) : '');
-const arr = (v: FormValues, id: string) => (Array.isArray(v[id]) ? (v[id] as string[]) : []);
+const arr = (v: FormValues, id: string) => (Array.isArray(v[id]) ? (v[id] as string[]).filter(x => typeof x === 'string') : []);
+const files = (v: FormValues, id: string): FileValue[] => {
+  const val = v[id];
+  return Array.isArray(val) && val.length > 0 && typeof val[0] === 'object' ? (val as FileValue[]) : [];
+};
 const toggle = (a: string[], val: string, on: boolean) =>
   on ? [...a, val] : a.filter(x => x !== val);
+const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 function Badge({ text, variant }: { text: string; variant?: FieldOption['badgeVariant'] }) {
@@ -56,7 +61,12 @@ function CheckDot({ active }: { active: boolean }) {
 }
 
 // ── Field renderers ───────────────────────────────────────────────────────────
-interface FP { field: FormField; values: FormValues; onChange: (id: string, v: string | string[]) => void; }
+interface FP {
+  field: FormField;
+  values: FormValues;
+  onChange: (id: string, v: string | string[] | FileValue[]) => void;
+  showToast?: (msg: string, error?: boolean) => void;
+}
 
 function TextField({ field, values, onChange }: FP) {
   const type = field.type === 'phone' ? 'tel' : field.type === 'url' ? 'url' : field.type;
@@ -197,8 +207,9 @@ function RadioField({ field, values, onChange }: FP) {
   );
 }
 
-function CheckboxGroupField({ field, values, onChange }: FP) {
+function CheckboxGroupField({ field, values, onChange, showToast }: FP) {
   const selected = arr(values, field.id);
+  const max = field.maxSelect;
   return (
     <div className="flex flex-col gap-2 pt-1">
       {field.options?.map(opt => {
@@ -214,7 +225,13 @@ function CheckboxGroupField({ field, values, onChange }: FP) {
             )}
           >
             <input type="checkbox" value={opt.value} checked={checked}
-              onChange={e => onChange(field.id, toggle(selected, opt.value, e.target.checked))}
+              onChange={e => {
+                if (e.target.checked && max && selected.length >= max) {
+                  showToast?.(`You can pick up to ${max}.`, true);
+                  return;
+                }
+                onChange(field.id, toggle(selected, opt.value, e.target.checked));
+              }}
               className="sr-only" />
             <CheckDot active={checked} />
             <div className="flex-1">
@@ -224,6 +241,105 @@ function CheckboxGroupField({ field, values, onChange }: FP) {
           </label>
         );
       })}
+      {max && <div className="text-[12px] text-brand-ink-4 mt-0.5">{selected.length} / {max} selected</div>}
+    </div>
+  );
+}
+
+// ── Slider field (e.g. Formal ↔ Casual) ────────────────────────────────────────
+function SliderField({ field, values, onChange }: FP) {
+  const val = str(values, field.id) || field.defaultValue || '50';
+  const left = field.options?.[0]?.label ?? 'Low';
+  const right = field.options?.[1]?.label ?? 'High';
+  return (
+    <div>
+      <div className="flex justify-between text-[11px] font-mono uppercase tracking-wider text-brand-ink-3 mb-2.5">
+        <span>{left}</span>
+        <span>{right}</span>
+      </div>
+      <input
+        type="range" min={0} max={100} value={val}
+        onChange={e => onChange(field.id, e.target.value)}
+        className="w-full accent-brand-red"
+      />
+    </div>
+  );
+}
+
+// ── File upload field ───────────────────────────────────────────────────────────
+const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024; // serverless body limit headroom
+
+function FileField({ field, values, onChange, showToast }: FP) {
+  const list = files(values, field.id);
+  const [uploading, setUploading] = useState(0);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFiles(fileList: FileList | null) {
+    if (!fileList || fileList.length === 0) return;
+    const incoming = [...fileList];
+    for (const f of incoming) {
+      if (f.size > MAX_UPLOAD_BYTES) {
+        showToast?.(`"${f.name}" is too large (max ${fmtSize(MAX_UPLOAD_BYTES)}). List it in the notes instead.`, true);
+        continue;
+      }
+      setUploading(n => n + 1);
+      try {
+        const fd = new FormData();
+        fd.append('file', f);
+        const res = await fetch('/api/upload', { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error ?? 'Upload failed');
+        onChange(field.id, [...files(values, field.id), { name: f.name, url: json.url, size: f.size }]);
+      } catch (err) {
+        showToast?.(err instanceof Error ? err.message : `Failed to upload "${f.name}".`, true);
+      } finally {
+        setUploading(n => n - 1);
+      }
+    }
+  }
+
+  function removeFile(i: number) {
+    const next = [...files(values, field.id)];
+    next.splice(i, 1);
+    onChange(field.id, next);
+  }
+
+  return (
+    <div>
+      <label
+        className="flex flex-col items-center justify-center gap-1 text-center px-4 py-6 border-2 border-dashed border-brand-line rounded-xl cursor-pointer transition-all duration-150 hover:border-brand-red hover:bg-red-50/10"
+        onDragOver={e => e.preventDefault()}
+        onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
+      >
+        <span className="text-sm font-medium text-brand-ink">
+          {uploading > 0 ? 'Uploading…' : 'Drop files or click to choose'}
+        </span>
+        <span className="text-[12px] text-brand-ink-4">
+          {field.accept ? field.accept.split(',').map(s => s.replace('image/*', 'Images')).join(' · ') : 'Any file type'}
+          {field.multiple !== false ? ' · multiple OK' : ''}
+        </span>
+        <input
+          ref={inputRef} type="file" className="sr-only"
+          accept={field.accept} multiple={field.multiple !== false}
+          onChange={e => { handleFiles(e.target.files); e.target.value = ''; }}
+        />
+      </label>
+      {list.length > 0 && (
+        <div className="mt-2.5 flex flex-col gap-1.5">
+          {list.map((f, i) => (
+            <div key={`${f.url}-${i}`} className="flex items-center gap-2.5 px-3 py-2 border border-brand-line rounded-lg bg-white text-[13px]">
+              <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 truncate text-brand-ink hover:text-brand-red transition-colors">
+                {f.name}
+              </a>
+              <span className="font-mono text-[11px] text-brand-ink-4 flex-shrink-0">{fmtSize(f.size)}</span>
+              <button type="button" onClick={() => removeFile(i)}
+                className="flex-shrink-0 text-brand-ink-4 hover:text-red-600 transition-colors text-base leading-none px-1">
+                ×
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -235,11 +351,13 @@ function FieldRenderer(props: FP) {
     case 'select':        return <SelectField {...props} />;
     case 'radio':         return <RadioField {...props} />;
     case 'checkboxgroup': return <CheckboxGroupField {...props} />;
+    case 'slider':        return <SliderField {...props} />;
+    case 'file':          return <FileField {...props} />;
     default:              return <TextField {...props} />;
   }
 }
 
-function FieldWrapper({ field, values, onChange }: FP) {
+function FieldWrapper({ field, values, onChange, showToast }: FP) {
   return (
     <div>
       {field.label && (
@@ -251,7 +369,7 @@ function FieldWrapper({ field, values, onChange }: FP) {
         </div>
       )}
       {field.hint && <p className="text-[12px] text-brand-ink-4 italic mb-2 leading-relaxed">{field.hint}</p>}
-      <FieldRenderer field={field} values={values} onChange={onChange} />
+      <FieldRenderer field={field} values={values} onChange={onChange} showToast={showToast} />
     </div>
   );
 }
@@ -365,7 +483,13 @@ function useScrollProgress() {
 // ── Main FormClient ───────────────────────────────────────────────────────────
 export default function FormClient({ form }: { form: FormConfig }) {
   const STORAGE_KEY = `maxxlab-form-${form.slug}`;
-  const [values, setValues] = useState<FormValues>({});
+  const [values, setValues] = useState<FormValues>(() => {
+    const defaults: FormValues = {};
+    form.sections.forEach(s => s.fields.forEach(f => {
+      if (f.defaultValue) defaults[f.id] = f.defaultValue;
+    }));
+    return defaults;
+  });
   const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -376,7 +500,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (raw) { setValues(JSON.parse(raw)); setLastSaved('restored'); }
+      if (raw) { setValues(prev => ({ ...prev, ...JSON.parse(raw) })); setLastSaved('restored'); }
     } catch { /* ignore */ }
   }, [STORAGE_KEY]);
 
@@ -385,7 +509,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
-  const handleChange = useCallback((id: string, value: string | string[]) => {
+  const handleChange = useCallback((id: string, value: string | string[] | FileValue[]) => {
     setValues(prev => {
       const next = { ...prev, [id]: value };
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
@@ -579,10 +703,10 @@ export default function FormClient({ form }: { form: FormConfig }) {
                   return rows.map((row, ri) =>
                     Array.isArray(row) ? (
                       <div key={ri} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} />)}
+                        {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />)}
                       </div>
                     ) : (
-                      <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} />
+                      <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} showToast={showToast} />
                     )
                   );
                 })()}
@@ -646,8 +770,8 @@ export default function FormClient({ form }: { form: FormConfig }) {
         <SubmitModal
           onClose={() => setModalOpen(false)}
           onSubmit={handleSubmit}
-          defaultName={str(values, 'lead_name')}
-          defaultEmail={str(values, 'lead_email')}
+          defaultName={str(values, 'lead_name') || str(values, 'contact_name')}
+          defaultEmail={str(values, 'lead_email') || str(values, 'contact_email')}
           loading={submitting}
         />
       )}

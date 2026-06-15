@@ -1,4 +1,4 @@
-import type { FormSubmission } from './types';
+import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
@@ -73,6 +73,21 @@ function row(label: string, value: string) {
   </tr>`;
 }
 
+function isFileValueArray(val: unknown): val is FileValue[] {
+  return Array.isArray(val) && val.length > 0 && typeof val[0] === 'object' && val[0] !== null && 'url' in (val[0] as object);
+}
+
+function fileRow(label: string, fileList: FileValue[]) {
+  const display = fileList.length
+    ? fileList.map(f => `<a href="${f.url}" style="color:#2563eb;text-decoration:none;">${f.name}</a>`).join('<br/>')
+    : `<span style="color:#94a3b8;font-style:italic;">No files attached</span>`;
+  return `
+  <tr>
+    <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${label}</td>
+    <td style="padding:9px 20px;font-size:13px;border-bottom:1px solid #f8fafc;word-break:break-word;line-height:1.6;">${display}</td>
+  </tr>`;
+}
+
 function emailSection(title: string, rows: string) {
   return `
   <div style="margin:0 24px 16px;border:1px solid #f0f4f8;border-radius:12px;overflow:hidden;">
@@ -100,7 +115,11 @@ function buildSections(submission: FormSubmission): string {
   }
   return form.sections.map(s =>
     emailSection(`${s.num} — ${s.title}`,
-      s.fields.map(f => row(f.label ?? f.id, v(f.id))).join('')
+      s.fields.map(f => {
+        const val = d[f.id];
+        if (f.type === 'file') return fileRow(f.label ?? f.id, isFileValueArray(val) ? val : []);
+        return row(f.label ?? f.id, v(f.id));
+      }).join('')
     )
   ).join('');
 }

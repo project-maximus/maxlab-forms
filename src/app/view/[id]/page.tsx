@@ -4,7 +4,7 @@ import { getFormBySlug } from '@/forms';
 import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
 import type { Metadata } from 'next';
-import type { FormSubmission, FormField } from '@/lib/types';
+import type { FormSubmission, FormField, FileValue } from '@/lib/types';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -27,9 +27,25 @@ function formatDate(iso: string) {
   });
 }
 
-function AnswerValue({ value }: { value: string | string[] | undefined }) {
+function isFileValueArray(value: unknown): value is FileValue[] {
+  return Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'url' in (value[0] as object);
+}
+
+function AnswerValue({ value }: { value: string | string[] | FileValue[] | undefined }) {
   if (!value || (Array.isArray(value) && value.length === 0)) {
     return <span className="text-brand-ink-4 italic text-sm">Not specified</span>;
+  }
+  if (isFileValueArray(value)) {
+    return (
+      <div className="flex flex-col gap-1">
+        {value.map((f, i) => (
+          <a key={i} href={f.url} target="_blank" rel="noopener noreferrer"
+            className="text-sm text-brand-red hover:text-brand-red-dark underline break-all">
+            {f.name}
+          </a>
+        ))}
+      </div>
+    );
   }
   const display = Array.isArray(value) ? value.join(', ') : value;
   return <span className="text-sm text-brand-ink break-words whitespace-pre-wrap">{display}</span>;

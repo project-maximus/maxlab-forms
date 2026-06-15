@@ -10,7 +10,9 @@ export type FieldType =
   | 'textarea'
   | 'radio'
   | 'checkboxgroup'
-  | 'select';
+  | 'select'
+  | 'slider'
+  | 'file';
 
 export type RadioLayout = 'list' | 'pills' | 'grid';
 
@@ -37,6 +39,23 @@ export interface FormField {
   rows?: number;
   /** Place side-by-side with the next half-width field */
   halfWidth?: boolean;
+  /** Pre-filled value (e.g. brand palette hex codes, slider defaults) */
+  defaultValue?: string;
+  /** checkboxgroup: cap how many options can be selected */
+  maxSelect?: number;
+  /** slider: two end-point labels, e.g. [{value:'0',label:'Formal'},{value:'100',label:'Casual'}] */
+  /** file: accepted file types, e.g. "image/*,.svg,.pdf" */
+  accept?: string;
+  /** file: allow multiple uploads for this field */
+  multiple?: boolean;
+}
+
+// ── File upload value ─────────────────────────────────────────────────────────
+
+export interface FileValue {
+  name: string;
+  url: string;
+  size: number;
 }
 
 export interface FormSection {
@@ -72,8 +91,8 @@ export interface FormSubmission {
   senderEmail: string;
   senderNote: string;
   submittedAt: string;
-  /** All form values; arrays for multi-select fields */
-  data: Record<string, string | string[]>;
+  /** All form values; arrays for multi-select fields, FileValue[] for uploads */
+  data: Record<string, string | string[] | FileValue[]>;
 }
 
 export interface SubmissionIndexEntry {
