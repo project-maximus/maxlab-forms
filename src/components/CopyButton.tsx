@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 
-export default function CopyButton({ slug }: { slug: string }) {
+export default function CopyButton({ path }: { path: string }) {
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    const url = `${window.location.origin}/forms/${slug}`;
+    const url = `${window.location.origin}${path}`;
     await navigator.clipboard.writeText(url);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

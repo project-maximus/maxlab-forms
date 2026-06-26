@@ -93,7 +93,7 @@ export default async function HomePage() {
                     >
                       Open form →
                     </Link>
-                    <CopyButton slug={form.slug} />
+                    <CopyButton path={`/forms/${form.slug}`} />
                   </div>
                 </div>
                 <div className="px-5 py-3 bg-brand-bg border-t border-brand-line/60 flex items-center gap-4 text-xs text-brand-ink-3">
@@ -111,6 +111,44 @@ export default async function HomePage() {
                 </div>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Client presentations */}
+        <section>
+          <h2 className="font-mono text-[11px] uppercase tracking-[0.06em] text-brand-ink-3 mb-4">
+            Client Presentations
+          </h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="bg-white border border-brand-line rounded-2xl shadow-card hover:shadow-card-hover transition-shadow overflow-hidden">
+              <div className="p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em] mb-1">
+                      North PKWY Surgical Institute
+                    </div>
+                    <h3 className="font-semibold text-brand-ink text-base leading-snug">
+                      Website Transformation — First Meeting
+                    </h3>
+                  </div>
+                  <span className="inline-block bg-green-50 text-green-700 border border-green-200 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
+                    ACTIVE
+                  </span>
+                </div>
+                <p className="text-xs text-brand-ink-3 mb-4 line-clamp-2">
+                  Step-by-step proposal deck — audit findings, the 12-day plan, deliverables, and pricing.
+                </p>
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/proposals/npsi-first-meeting"
+                    className="flex-1 text-center px-4 py-2.5 text-sm font-medium bg-brand-ink text-white rounded-full hover:bg-brand-red transition-colors"
+                  >
+                    Open presentation →
+                  </Link>
+                  <CopyButton path="/proposals/npsi-first-meeting" />
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
