@@ -3,6 +3,7 @@ import { getSubmission } from '@/lib/storage';
 import { getFormBySlug } from '@/forms';
 import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
+import { directionByName, buildAlignmentStatement } from '@/lib/npsi-selector-data';
 import type { Metadata } from 'next';
 import type { FormSubmission, FormField, FileValue } from '@/lib/types';
 
@@ -49,6 +50,28 @@ function AnswerValue({ value }: { value: string | string[] | FileValue[] | undef
   }
   const display = Array.isArray(value) ? value.join(', ') : value;
   return <span className="text-sm text-brand-ink break-words whitespace-pre-wrap">{display}</span>;
+}
+
+function NPSIAlignmentSummary({ submission }: { submission: FormSubmission }) {
+  const direction = directionByName(typeof submission.data.primary_direction === 'string' ? submission.data.primary_direction : '');
+  const alignment = buildAlignmentStatement(submission.data);
+  return (
+    <div className="space-y-4">
+      <div className="rounded-2xl bg-[#0f172a] p-6 print-break-avoid">
+        <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-red mb-2">Alignment Statement</div>
+        <p className="text-[15px] leading-relaxed text-slate-100">{alignment}</p>
+      </div>
+      {direction && (
+        <div className="bg-white border border-brand-line rounded-2xl overflow-hidden shadow-card print-break-avoid">
+          <div className="px-6 py-5">
+            <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em] mb-1.5">Chosen Direction</div>
+            <h2 className="font-serif text-2xl text-brand-ink mb-1">{direction.name}</h2>
+            <p className="text-sm text-brand-ink-3">{direction.description}</p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function SectionBlock({
@@ -161,6 +184,11 @@ export default async function ViewPage({ params }: Props) {
             </div>
           )}
         </div>
+
+        {/* NPSI alignment summary */}
+        {submission.formSlug === 'npsi-direction-selector' && (
+          <NPSIAlignmentSummary submission={submission} />
+        )}
 
         {/* Form sections */}
         {form ? (

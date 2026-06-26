@@ -1,6 +1,7 @@
 import type { FormConfig } from '@/lib/types';
 import nutriPathWebsite from './nutripath-website';
 import nutriPathBrandContent from './nutripath-brand-content';
+import npsiDirectionSelector from './npsi-direction-selector';
 
 // ── Form registry ─────────────────────────────────────────────────────────────
 // Add new forms here — they'll appear on the home page automatically.
@@ -8,6 +9,7 @@ import nutriPathBrandContent from './nutripath-brand-content';
 const forms: FormConfig[] = [
   nutriPathWebsite,
   nutriPathBrandContent,
+  npsiDirectionSelector,
 ];
 
 export function getAllForms(): FormConfig[] {

@@ -12,10 +12,12 @@
     "@neondatabase/serverless": "^1.1.0",
     "@vercel/blob": "^2.4.0",
     "clsx": "^2.1.1",
+    "framer-motion": "^12.41.0",
     "next": "15.3.8",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "resend": "^4.1.2",
+    "tailwind-merge": "^3.6.0",
     "uuid": "^11.1.0"
   },
   "devDependencies": {

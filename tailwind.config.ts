@@ -30,6 +30,12 @@ const config: Config = {
         'slide-up': 'slideUp 0.2s ease',
         'fade-in': 'fadeIn 0.15s ease',
         spin: 'spin 0.6s linear infinite',
+        'rise-in': 'riseIn 0.5s ease both',
+        drift: 'drift 9s ease-in-out infinite',
+        'drift-slow': 'drift 13s ease-in-out infinite',
+        'spin-slow': 'spin-slow 3.5s linear infinite',
+        blink: 'blink 1s step-end infinite',
+        shimmer: 'shimmer 2.2s linear infinite',
       },
       keyframes: {
         slideUp: {
@@ -39,6 +45,26 @@ const config: Config = {
         fadeIn: {
           from: { opacity: '0' },
           to: { opacity: '1' },
+        },
+        riseIn: {
+          from: { transform: 'translateY(18px)', opacity: '0' },
+          to: { transform: 'translateY(0)', opacity: '1' },
+        },
+        drift: {
+          '0%, 100%': { transform: 'translate(0, 0) scale(1)' },
+          '50%': { transform: 'translate(14px, -12px) scale(1.08)' },
+        },
+        'spin-slow': {
+          from: { transform: 'rotate(0deg)' },
+          to: { transform: 'rotate(360deg)' },
+        },
+        blink: {
+          '0%, 100%': { opacity: '1' },
+          '50%': { opacity: '0' },
+        },
+        shimmer: {
+          from: { backgroundPosition: '0% 0' },
+          to: { backgroundPosition: '-200% 0' },
         },
       },
     },

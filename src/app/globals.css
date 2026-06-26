@@ -46,6 +46,16 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
 /* ── Focus ring ──────────────────────────────────────────────────────────── */
 :focus-visible { outline: 2px solid #fe3030; outline-offset: 2px; }
 
+/* ── Reduced motion ──────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 /* ── Print ───────────────────────────────────────────────────────────────── */
 @media print {
   .no-print { display: none !important; }

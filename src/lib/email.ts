@@ -1,5 +1,6 @@
 import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
+import { buildAlignmentStatement } from './npsi-selector-data';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL        ?? 'admin@maxxlab.tech';
@@ -124,6 +125,17 @@ function buildSections(submission: FormSubmission): string {
   ).join('');
 }
 
+// ── NPSI alignment statement block (admin email only) ─────────────────────────
+function alignmentBlock(submission: FormSubmission): string {
+  if (submission.formSlug !== 'npsi-direction-selector') return '';
+  const statement = buildAlignmentStatement(submission.data);
+  return `
+    <div style="margin:0 24px 16px;background:#0f172a;border-radius:12px;padding:18px 20px;">
+      <div style="font-size:10px;font-weight:700;color:#fe3030;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Alignment Statement</div>
+      <p style="margin:0;font-size:13px;line-height:1.6;color:#e2e8f0;">${statement}</p>
+    </div>`;
+}
+
 // ── Client confirmation email ─────────────────────────────────────────────────
 function buildClientEmail(submission: FormSubmission, viewUrl: string): string {
   const firstName = submission.senderName.split(' ')[0];
@@ -219,8 +231,13 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
       <p style="margin:12px 0 0;font-size:11px;color:#94a3b8;font-family:monospace;word-break:break-all;">${viewUrl}</p>
     </div>
 
+    <!-- Alignment statement (NPSI selector only) -->
+    <div style="padding:20px 0 0;">
+      ${alignmentBlock(submission)}
+    </div>
+
     <!-- Submission data -->
-    <div style="padding:20px 0 8px;">
+    <div style="padding:4px 0 8px;">
       ${buildSections(submission)}
     </div>
 
