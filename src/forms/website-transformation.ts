@@ -346,10 +346,10 @@ const websiteTransformation: FormConfig = {
       ],
     },
     {
-      id: 'timeline-budget',
+      id: 'timeline',
       num: '12',
-      title: 'Timeline & budget',
-      description: 'Deadlines and investment range so we can scope appropriately.',
+      title: 'Timeline',
+      description: 'Deadlines so we can scope and schedule appropriately.',
       fields: [
         { id: 'launch_date', type: 'date', label: 'Target date (if known)', halfWidth: true },
         { id: 'launch_event', type: 'text', label: 'Any events or campaigns tied to launch?', placeholder: 'e.g. Product launch in March, trade show in Q2', halfWidth: true },
