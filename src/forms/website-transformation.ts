@@ -335,15 +335,6 @@ const websiteTransformation: FormConfig = {
           ],
         },
         {
-          id: 'editor_team', type: 'radio', layout: 'pills', label: 'Who will edit the website after launch?',
-          options: [
-            { value: 'agency', label: 'Only your team (change requests)' },
-            { value: '1to2', label: '1–2 internal editors' },
-            { value: 'team', label: 'Larger internal team' },
-            { value: 'unsure', label: 'Not decided yet' },
-          ],
-        },
-        {
           id: 'hosting_pref', type: 'radio', layout: 'pills', label: 'Hosting preference',
           options: [
             { value: 'agency_managed', label: 'Agency-managed (you handle it)' },
@@ -362,36 +353,6 @@ const websiteTransformation: FormConfig = {
       fields: [
         { id: 'launch_date', type: 'date', label: 'Target date (if known)', halfWidth: true },
         { id: 'launch_event', type: 'text', label: 'Any events or campaigns tied to launch?', placeholder: 'e.g. Product launch in March, trade show in Q2', halfWidth: true },
-        {
-          id: 'urgency', type: 'radio', layout: 'pills', label: 'How urgent is this project?',
-          options: [
-            { value: 'asap', label: 'ASAP' },
-            { value: 'months1to2', label: '1–2 months' },
-            { value: 'months3to4', label: '3–4 months' },
-            { value: 'flexible', label: 'Flexible' },
-          ],
-        },
-        {
-          id: 'budget', type: 'radio', layout: 'pills', label: 'Budget range for the website transformation',
-          hint: "A rough range helps us scope the right solution. Leave blank if you'd prefer to discuss.",
-          options: [
-            { value: 'under3k', label: 'Under $3k' },
-            { value: '3to8k', label: '$3k–$8k' },
-            { value: '8to15k', label: '$8k–$15k' },
-            { value: '15to30k', label: '$15k–$30k' },
-            { value: 'over30k', label: '$30k+' },
-            { value: 'discuss', label: 'Prefer to discuss' },
-          ],
-        },
-        {
-          id: 'monthly_budget', type: 'radio', layout: 'pills', label: 'Ongoing maintenance budget (monthly)',
-          options: [
-            { value: 'under100', label: 'Under $100/mo' },
-            { value: '100to300', label: '$100–$300/mo' },
-            { value: 'over300', label: '$300+/mo' },
-            { value: 'discuss', label: 'Discuss in meeting' },
-          ],
-        },
       ],
     },
     {
