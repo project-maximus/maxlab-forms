@@ -131,14 +131,6 @@ const hiringAiFullstack: FormConfig = {
         { id: 'start_date', type: 'date', label: 'Earliest start date', halfWidth: true },
         { id: 'compensation_expectation', type: 'text', label: 'Compensation expectation', hint: 'Monthly or hourly rate, whatever is easiest to compare.', halfWidth: true },
         {
-          id: 'trial_period_ok', type: 'radio', layout: 'pills', label: 'We bring people on with a paid trial period first — are you open to that?',
-          options: [
-            { value: 'yes', label: 'Yes, that works for me' },
-            { value: 'depends', label: 'Depends on terms' },
-            { value: 'no', label: 'No, not open to this' },
-          ],
-        },
-        {
           id: 'weekly_hours', type: 'radio', layout: 'pills', label: 'Hours you can commit per week',
           options: [
             { value: 'under20', label: 'Under 20' },
