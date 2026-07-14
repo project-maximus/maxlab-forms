@@ -78,6 +78,10 @@ export interface FormConfig {
   /** e.g. "Phase 0 · Pre-meeting · Form 1 of 2" */
   eyebrow?: string;
   client: string;
+  /** 'accordion' collapses sections one at a time instead of stacking them all open */
+  layout?: 'stacked' | 'accordion';
+  /** Overrides the default reassurance note above the submit bar */
+  footerNote?: string;
   sections: FormSection[];
 }
 

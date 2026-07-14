@@ -393,6 +393,7 @@ function useScrollProgress() {
 
 // ── Main FormClient ───────────────────────────────────────────────────────────
 export default function FormClient({ form }: { form: FormConfig }) {
+  const isAccordion = form.layout === 'accordion';
   const STORAGE_KEY = `maxxlab-form-${form.slug}`;
   const [values, setValues] = useState<FormValues>(() => {
     const defaults: FormValues = {};
@@ -405,8 +406,17 @@ export default function FormClient({ form }: { form: FormConfig }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
+  const [openSection, setOpenSection] = useState<string | null>(form.sections[0]?.id ?? null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const progress = useScrollProgress();
+
+  function goToSection(id: string) {
+    setOpenSection(id);
+    requestAnimationFrame(() => {
+      sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
 
   useEffect(() => {
     try {
@@ -571,22 +581,44 @@ export default function FormClient({ form }: { form: FormConfig }) {
       {/* ── Sections ── */}
       <main className="bg-[#f8fafc] pb-32">
         <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 space-y-3">
-          {form.sections.map((section, si) => (
+          {form.sections.map((section, si) => {
+            const answered = section.fields.filter(f => {
+              const v = values[f.id];
+              return Array.isArray(v) ? v.length > 0 : !!v;
+            }).length;
+            const complete = section.fields.length > 0 && answered === section.fields.length;
+            const isOpen = !isAccordion || openSection === section.id;
+            const nextSection = form.sections[si + 1];
+
+            return (
             <div
               key={section.id}
-              className="bg-white rounded-2xl overflow-hidden print-break-avoid"
+              ref={el => { sectionRefs.current[section.id] = el; }}
+              className="bg-white rounded-2xl overflow-hidden print-break-avoid scroll-mt-20"
               style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04)', border: '1px solid #f0f4f8' }}
             >
               {/* Section header */}
-              <div className="px-7 pt-7 pb-5">
+              <div
+                className={clsx('px-7 pt-7 pb-5', isAccordion && 'cursor-pointer select-none')}
+                onClick={isAccordion ? () => setOpenSection(o => o === section.id ? null : section.id) : undefined}
+              >
                 <div className="flex items-center gap-3 mb-1">
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-red text-white font-mono text-[10px] font-bold flex-shrink-0">
-                    {section.num}
+                    {complete ? (
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : section.num}
                   </span>
                   <div className="h-px flex-1 bg-brand-line/60" />
                   <span className="text-[11px] font-mono text-brand-ink-4 uppercase tracking-wider">
                     {si + 1} of {form.sections.length}
                   </span>
+                  {isAccordion && (
+                    <svg className={clsx('w-4 h-4 text-brand-ink-3 transition-transform duration-200 flex-shrink-0', isOpen && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  )}
                 </div>
                 <h2 className="font-serif text-[28px] font-normal text-brand-ink mt-3 leading-tight">
                   {section.title}
@@ -598,38 +630,62 @@ export default function FormClient({ form }: { form: FormConfig }) {
                 )}
               </div>
 
-              {/* Divider */}
-              <div className="h-px mx-7 bg-brand-line/40" />
+              {/* Collapsible body */}
+              <div
+                className="grid transition-[grid-template-rows] duration-300 ease-in-out"
+                style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
+              >
+                <div className="overflow-hidden">
+                  {/* Divider */}
+                  <div className="h-px mx-7 bg-brand-line/40" />
 
-              {/* Fields */}
-              <div className="px-7 py-7 space-y-8">
-                {(() => {
-                  const rows: (FormField | [FormField, FormField])[] = [];
-                  let i = 0;
-                  while (i < section.fields.length) {
-                    const cur = section.fields[i], nxt = section.fields[i + 1];
-                    if (cur.halfWidth && nxt?.halfWidth) { rows.push([cur, nxt]); i += 2; }
-                    else { rows.push(cur); i++; }
-                  }
-                  return rows.map((row, ri) =>
-                    Array.isArray(row) ? (
-                      <div key={ri} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                        {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />)}
+                  {/* Fields */}
+                  <div className="px-7 py-7 space-y-8">
+                    {(() => {
+                      const rows: (FormField | [FormField, FormField])[] = [];
+                      let i = 0;
+                      while (i < section.fields.length) {
+                        const cur = section.fields[i], nxt = section.fields[i + 1];
+                        if (cur.halfWidth && nxt?.halfWidth) { rows.push([cur, nxt]); i += 2; }
+                        else { rows.push(cur); i++; }
+                      }
+                      return rows.map((row, ri) =>
+                        Array.isArray(row) ? (
+                          <div key={ri} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />)}
+                          </div>
+                        ) : (
+                          <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} showToast={showToast} />
+                        )
+                      );
+                    })()}
+
+                    {isAccordion && nextSection && (
+                      <div className="flex justify-end pt-1 -mb-2 border-t border-brand-line/40">
+                        <button
+                          type="button"
+                          onClick={() => goToSection(nextSection.id)}
+                          className="flex items-center gap-1.5 mt-4 text-[13px] font-medium text-brand-ink-3 hover:text-brand-red transition-colors"
+                        >
+                          Continue to {nextSection.title}
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                          </svg>
+                        </button>
                       </div>
-                    ) : (
-                      <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} showToast={showToast} />
-                    )
-                  );
-                })()}
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-          ))}
+            );
+          })}
 
           {/* End note */}
           <div className="flex items-start gap-3 px-5 py-4 rounded-2xl bg-amber-50 border border-amber-200/80">
             <span className="text-amber-400 text-xl leading-none mt-0.5 flex-shrink-0">✦</span>
             <p className="text-[13px] text-amber-800 leading-relaxed">
-              Nothing here is required — we'll cover any blanks together in our discovery call.
+              {form.footerNote ?? "Nothing here is required — we'll cover any blanks together in our discovery call."}
             </p>
           </div>
         </div>
