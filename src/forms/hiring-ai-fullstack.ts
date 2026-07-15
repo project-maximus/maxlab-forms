@@ -3,7 +3,7 @@ import type { FormConfig } from '@/lib/types';
 const hiringAiFullstack: FormConfig = {
   id: 'hiring-ai-fullstack',
   slug: 'hiring-ai-fullstack',
-  title: 'Hiring · AI / Full-Stack Engineer Application',
+  title: 'Full-Stack / AI Engineer Application · Remote',
   heroAccent: 'Application',
   eyebrow: 'Maxxlab · Hiring · AI-Powered Product Infrastructure · Remote',
   description: "We're hiring AI and Full-Stack engineers to build production-grade AI products with us long-term. Tell us about yourself, what you're strongest in, and share your work.",
