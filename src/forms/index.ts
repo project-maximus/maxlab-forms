@@ -4,6 +4,7 @@ import nutriPathBrandContent from './nutripath-brand-content';
 import npsiDirectionSelector from './npsi-direction-selector';
 import websiteTransformation from './website-transformation';
 import hiringAiFullstack from './hiring-ai-fullstack';
+import ispotPricingCall from './ispot-pricing-call';
 
 // ── Form registry ─────────────────────────────────────────────────────────────
 // Add new forms here — they'll appear on the home page automatically.
@@ -14,6 +15,7 @@ const forms: FormConfig[] = [
   npsiDirectionSelector,
   websiteTransformation,
   hiringAiFullstack,
+  ispotPricingCall,
 ];
 
 export function getAllForms(): FormConfig[] {

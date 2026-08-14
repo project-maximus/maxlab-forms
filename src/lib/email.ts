@@ -251,6 +251,20 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
   return emailShell(`New submission: ${submission.formTitle} from ${submission.senderName}`, body);
 }
 
+// ── Admin subject line ─────────────────────────────────────────────────────────
+// Surfaces the selected plan directly in the subject for pricing-page
+// submissions, so it's visible at a glance without opening the email.
+function adminSubject(submission: FormSubmission): string {
+  if (submission.formSlug === 'ispot-pricing-call') {
+    const planName = submission.data.planName;
+    const planPrice = submission.data.planPrice;
+    if (planName) {
+      return `Pricing call request: ${planName}${planPrice ? ` (${planPrice})` : ''} — ${submission.senderName}`;
+    }
+  }
+  return `New submission: ${submission.formTitle} from ${submission.senderName}`;
+}
+
 // ── Send ──────────────────────────────────────────────────────────────────────
 export interface SendResult { ok: boolean; error?: string; }
 
@@ -286,7 +300,7 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
         from: FROM,
         to: testOverride ?? ADMIN_EMAIL,
         replyTo: submission.senderEmail,
-        subject: `New submission: ${submission.formTitle} from ${submission.senderName}`,
+        subject: adminSubject(submission),
         html: adminHtml,
       }),
     ]);
