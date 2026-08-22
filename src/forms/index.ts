@@ -5,6 +5,7 @@ import npsiDirectionSelector from './npsi-direction-selector';
 import websiteTransformation from './website-transformation';
 import hiringAiFullstack from './hiring-ai-fullstack';
 import ispotPricingCall from './ispot-pricing-call';
+import nghiProgramContent from './nghi-program-content';
 
 // ── Form registry ─────────────────────────────────────────────────────────────
 // Add new forms here — they'll appear on the home page automatically.
@@ -16,6 +17,7 @@ const forms: FormConfig[] = [
   websiteTransformation,
   hiringAiFullstack,
   ispotPricingCall,
+  nghiProgramContent,
 ];
 
 export function getAllForms(): FormConfig[] {

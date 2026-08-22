@@ -279,6 +279,9 @@ function FileField({ field, values, onChange, showToast }: FP) {
   async function handleFiles(fileList: FileList | null) {
     if (!fileList || fileList.length === 0) return;
     const incoming = [...fileList];
+    // Accumulate locally: `values` is captured at call time, so reading it back
+    // inside the loop would drop every file but the last of a multi-file pick.
+    let acc = files(values, field.id);
     for (const f of incoming) {
       if (f.size > MAX_UPLOAD_BYTES) {
         showToast?.(`"${f.name}" is too large (max ${fmtSize(MAX_UPLOAD_BYTES)}). List it in the notes instead.`, true);
@@ -291,7 +294,8 @@ function FileField({ field, values, onChange, showToast }: FP) {
         const res = await fetch('/api/upload', { method: 'POST', body: fd });
         const json = await res.json();
         if (!res.ok) throw new Error(json.error ?? 'Upload failed');
-        onChange(field.id, [...files(values, field.id), { name: f.name, url: json.url, size: f.size }]);
+        acc = [...acc, { name: f.name, url: json.url, size: f.size }];
+        onChange(field.id, acc);
       } catch (err) {
         showToast?.(err instanceof Error ? err.message : `Failed to upload "${f.name}".`, true);
       } finally {
@@ -407,20 +411,66 @@ export default function FormClient({ form }: { form: FormConfig }) {
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
   const [openSection, setOpenSection] = useState<string | null>(form.sections[0]?.id ?? null);
+  // A collapsed accordion body is only visually hidden — its fields still lay
+  // out inside the clipped box, and the browser keeps counting them in the
+  // page's scrollable height. With 11 sections that left ~1400px of dead scroll
+  // space under the form. Once a section has finished animating shut we stop
+  // rendering its fields entirely; `values` is the source of truth, so nothing
+  // is lost when they remount.
+  const [shut, setShut] = useState<Record<string, boolean>>(() => {
+    const init: Record<string, boolean> = {};
+    if (form.layout === 'accordion') {
+      form.sections.forEach((sec, i) => { if (i !== 0) init[sec.id] = true; });
+    }
+    return init;
+  });
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const shutTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const progress = useScrollProgress();
 
-  function goToSection(id: string) {
-    setOpenSection(id);
-    requestAnimationFrame(() => {
-      sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  useEffect(() => {
+    const timers = shutTimers.current;
+    return () => { Object.values(timers).forEach(clearTimeout); };
+  }, []);
+
+  // Single entry point for opening/closing so the "finished shutting" bookkeeping
+  // can't drift out of sync with `openSection`.
+  const changeOpen = useCallback((next: string | null) => {
+    setOpenSection(prev => {
+      if (prev && prev !== next) {
+        clearTimeout(shutTimers.current[prev]);
+        shutTimers.current[prev] = setTimeout(
+          () => setShut(m => ({ ...m, [prev]: true })),
+          360, // just past the 300ms grid-template-rows transition
+        );
+      }
+      return next;
     });
+    if (next) {
+      clearTimeout(shutTimers.current[next]);
+      setShut(m => (m[next] ? { ...m, [next]: false } : m));
+    }
+  }, []);
+
+  function goToSection(id: string) {
+    changeOpen(id);
+    // The accordion body animates its grid rows for 300ms and the section being
+    // collapsed shrinks the page underneath us, so a single scroll on the next
+    // frame lands in the wrong place. Anchor once for immediate feedback, then
+    // again after the transition settles.
+    const scroll = () => sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    requestAnimationFrame(scroll);
+    setTimeout(scroll, 340);
   }
 
+  // Drafts persist in localStorage rather than per-tab storage — long intake
+  // forms (the NGHI program content form runs 11 sections deep) get filled
+  // across several sittings, and closing the tab shouldn't wipe the answers.
+  // Cleared on submit and on Clear.
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
       if (raw) { setValues(prev => ({ ...prev, ...JSON.parse(raw) })); setLastSaved('restored'); }
     } catch { /* ignore */ }
   }, [STORAGE_KEY]);
@@ -435,7 +485,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
       const next = { ...prev, [id]: value };
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
       autosaveTimer.current = setTimeout(() => {
-        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setLastSaved(new Date().toLocaleTimeString()); } catch { /* ignore */ }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setLastSaved(new Date().toLocaleTimeString()); } catch { /* ignore */ }
       }, 600);
       return next;
     });
@@ -450,7 +500,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
 
   function handleClear() {
     if (!confirm('Clear all answers?')) return;
-    setValues({}); try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    setValues({}); try { localStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
     showToast('Form cleared');
   }
 
@@ -469,7 +519,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
       setModalOpen(false);
       showToast('Submitted! Check your inbox for confirmation.');
       window.open(`/view/${json.id}`, '_blank');
-      try { sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+      try { localStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Submission failed. Please try again.', true);
     } finally {
@@ -588,6 +638,8 @@ export default function FormClient({ form }: { form: FormConfig }) {
             }).length;
             const complete = section.fields.length > 0 && answered === section.fields.length;
             const isOpen = !isAccordion || openSection === section.id;
+            // Fully shut: animation done, so its fields can stop rendering.
+            const isShut = isAccordion && !isOpen && !!shut[section.id];
             const nextSection = form.sections[si + 1];
 
             return (
@@ -600,7 +652,10 @@ export default function FormClient({ form }: { form: FormConfig }) {
               {/* Section header */}
               <div
                 className={clsx('px-7 pt-7 pb-5', isAccordion && 'cursor-pointer select-none')}
-                onClick={isAccordion ? () => setOpenSection(o => o === section.id ? null : section.id) : undefined}
+                onClick={isAccordion ? () => {
+                  if (openSection === section.id) changeOpen(null);
+                  else goToSection(section.id);
+                } : undefined}
               >
                 <div className="flex items-center gap-3 mb-1">
                   <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-red text-white font-mono text-[10px] font-bold flex-shrink-0">
@@ -610,6 +665,11 @@ export default function FormClient({ form }: { form: FormConfig }) {
                       </svg>
                     ) : section.num}
                   </span>
+                  {isAccordion && answered > 0 && !complete && (
+                    <span className="text-[10px] font-mono font-semibold text-brand-red bg-red-50 border border-red-100 rounded-full px-2 py-0.5 flex-shrink-0">
+                      {answered}/{section.fields.length}
+                    </span>
+                  )}
                   <div className="h-px flex-1 bg-brand-line/60" />
                   <span className="text-[11px] font-mono text-brand-ink-4 uppercase tracking-wider">
                     {si + 1} of {form.sections.length}
@@ -623,7 +683,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
                 <h2 className="font-serif text-[28px] font-normal text-brand-ink mt-3 leading-tight">
                   {section.title}
                 </h2>
-                {section.description && (
+                {section.description && !isAccordion && (
                   <p className="text-[14px] text-brand-ink-3 mt-1.5 leading-relaxed">
                     {section.description}
                   </p>
@@ -636,11 +696,17 @@ export default function FormClient({ form }: { form: FormConfig }) {
                 style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
               >
                 <div className="overflow-hidden">
+                  {isShut ? null : <>
                   {/* Divider */}
                   <div className="h-px mx-7 bg-brand-line/40" />
 
                   {/* Fields */}
                   <div className="px-7 py-7 space-y-8">
+                    {section.description && isAccordion && (
+                      <p className="text-[14px] text-brand-ink-3 leading-relaxed -mb-2">
+                        {section.description}
+                      </p>
+                    )}
                     {(() => {
                       const rows: (FormField | [FormField, FormField])[] = [];
                       let i = 0;
@@ -675,6 +741,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
                       </div>
                     )}
                   </div>
+                  </>}
                 </div>
               </div>
             </div>

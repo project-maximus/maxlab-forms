@@ -17,6 +17,7 @@ const ispotPricingCall: FormConfig = {
         { id: 'planName', type: 'text', label: 'Plan selected', halfWidth: true },
         { id: 'planPrice', type: 'text', label: 'Price', halfWidth: true },
         { id: 'company', type: 'text', label: 'Company', halfWidth: true },
+        { id: 'message', type: 'textarea', label: 'What they want to discuss', required: true },
       ],
     },
   ],

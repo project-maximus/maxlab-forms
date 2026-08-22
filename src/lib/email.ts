@@ -62,14 +62,29 @@ function emailShell(preheader: string, body: string) {
 </html>`;
 }
 
+// ── HTML escaping ─────────────────────────────────────────────────────────────
+// Every value below is client-typed free text, so it has to be escaped before
+// it goes into the email markup. Newlines matter too — several forms ask for
+// one-item-per-line answers (skills, curriculum modules) and those would
+// otherwise collapse into a single run-on line.
+function esc(v: unknown): string {
+  return String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+const nl2br = (v: string) => esc(v).replace(/\r?\n/g, '<br/>');
+
 // ── Section row helper ────────────────────────────────────────────────────────
 function row(label: string, value: string) {
   const display = value?.trim()
-    ? `<span style="color:#0f172a;">${value}</span>`
+    ? `<span style="color:#0f172a;">${nl2br(value)}</span>`
     : `<span style="color:#94a3b8;font-style:italic;">Not specified</span>`;
   return `
   <tr>
-    <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${label}</td>
+    <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${esc(label)}</td>
     <td style="padding:9px 20px;font-size:13px;border-bottom:1px solid #f8fafc;word-break:break-word;line-height:1.5;">${display}</td>
   </tr>`;
 }
@@ -80,11 +95,11 @@ function isFileValueArray(val: unknown): val is FileValue[] {
 
 function fileRow(label: string, fileList: FileValue[]) {
   const display = fileList.length
-    ? fileList.map(f => `<a href="${f.url}" style="color:#2563eb;text-decoration:none;">${f.name}</a>`).join('<br/>')
+    ? fileList.map(f => `<a href="${esc(f.url)}" style="color:#2563eb;text-decoration:none;">${esc(f.name)}</a>`).join('<br/>')
     : `<span style="color:#94a3b8;font-style:italic;">No files attached</span>`;
   return `
   <tr>
-    <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${label}</td>
+    <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${esc(label)}</td>
     <td style="padding:9px 20px;font-size:13px;border-bottom:1px solid #f8fafc;word-break:break-word;line-height:1.6;">${display}</td>
   </tr>`;
 }
@@ -93,9 +108,23 @@ function emailSection(title: string, rows: string) {
   return `
   <div style="margin:0 24px 16px;border:1px solid #f0f4f8;border-radius:12px;overflow:hidden;">
     <div style="background:#f8fafc;padding:10px 16px;border-bottom:1px solid #f0f4f8;">
-      <span style="font-size:12px;font-weight:600;color:#334155;">${title}</span>
+      <span style="font-size:12px;font-weight:600;color:#334155;">${esc(title)}</span>
     </div>
     <table width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table>
+  </div>`;
+}
+
+// Gmail clips messages past ~102KB. Long intake forms (one section per program,
+// 150+ fields) blow past that easily, so we (a) drop blanks on big forms and
+// (b) hard-cap the rendered answers, pointing at the submission page for the
+// rest. The /view page is always the complete record.
+const ANSWERS_ONLY_FIELD_COUNT = 40;
+const MAX_SECTIONS_HTML = 60_000;
+
+function noteBlock(text: string): string {
+  return `
+  <div style="margin:0 24px 16px;padding:12px 16px;background:#f8fafc;border:1px solid #f0f4f8;border-radius:12px;">
+    <p style="margin:0;font-size:12px;color:#64748b;line-height:1.6;">${text}</p>
   </div>`;
 }
 
@@ -114,15 +143,58 @@ function buildSections(submission: FormSubmission): string {
       ).join('')
     );
   }
-  return form.sections.map(s =>
-    emailSection(`${s.num} — ${s.title}`,
-      s.fields.map(f => {
+
+  const answered = (id: string) => {
+    const val = d[id];
+    if (Array.isArray(val)) return val.length > 0;
+    return typeof val === 'string' && val.trim() !== '';
+  };
+
+  const totalFields = form.sections.reduce((n, s) => n + s.fields.length, 0);
+  const answersOnly = totalFields > ANSWERS_ONLY_FIELD_COUNT;
+
+  const empty: string[] = [];
+  const chunks: string[] = [];
+  let size = 0;
+  let truncatedFrom = -1;
+
+  form.sections.forEach((s, i) => {
+    const fields = answersOnly ? s.fields.filter(f => answered(f.id)) : s.fields;
+    if (fields.length === 0) { empty.push(s.title); return; }
+    if (truncatedFrom >= 0) return;
+
+    const html = emailSection(`${s.num} — ${s.title}`,
+      fields.map(f => {
         const val = d[f.id];
         if (f.type === 'file') return fileRow(f.label ?? f.id, isFileValueArray(val) ? val : []);
         return row(f.label ?? f.id, v(f.id));
       }).join('')
-    )
-  ).join('');
+    );
+
+    if (size + html.length > MAX_SECTIONS_HTML && chunks.length > 0) {
+      truncatedFrom = i;
+      return;
+    }
+    chunks.push(html);
+    size += html.length;
+  });
+
+  if (chunks.length === 0) {
+    chunks.push(noteBlock('No answers were filled in on this submission.'));
+  }
+
+  if (truncatedFrom >= 0) {
+    const remaining = form.sections.length - truncatedFrom;
+    chunks.push(noteBlock(
+      `<strong>${remaining} more section${remaining === 1 ? '' : 's'} not shown</strong> — this email would be clipped by most mail clients. Open the full submission above to read everything.`
+    ));
+  } else if (empty.length > 0) {
+    chunks.push(noteBlock(
+      `<strong>Left blank:</strong> ${esc(empty.join(' · '))}`
+    ));
+  }
+
+  return chunks.join('');
 }
 
 // ── NPSI alignment statement block (admin email only) ─────────────────────────
@@ -132,7 +204,7 @@ function alignmentBlock(submission: FormSubmission): string {
   return `
     <div style="margin:0 24px 16px;background:#0f172a;border-radius:12px;padding:18px 20px;">
       <div style="font-size:10px;font-weight:700;color:#fe3030;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Alignment Statement</div>
-      <p style="margin:0;font-size:13px;line-height:1.6;color:#e2e8f0;">${statement}</p>
+      <p style="margin:0;font-size:13px;line-height:1.6;color:#e2e8f0;">${esc(statement)}</p>
     </div>`;
 }
 
@@ -146,13 +218,13 @@ function buildClientEmail(submission: FormSubmission, viewUrl: string): string {
         <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:0.08em;text-transform:uppercase;">Received</span>
       </div>
       <h1 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#ffffff;line-height:1.2;">
-        Got it, ${firstName}.
+        Got it, ${esc(firstName)}.
       </h1>
       <p style="margin:0;font-size:14px;color:#94a3b8;line-height:1.6;">
-        Your <strong style="color:#e2e8f0;">${submission.formTitle}</strong> has been received.<br/>
+        Your <strong style="color:#e2e8f0;">${esc(submission.formTitle)}</strong> has been received.<br/>
         The Maxxlab team will review it before your discovery call.
       </p>
-      ${submission.senderNote ? `<div style="margin-top:16px;background:rgba(245,158,11,0.15);border-left:3px solid #f59e0b;padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:#fde68a;line-height:1.5;"><strong>Your note:</strong> ${submission.senderNote}</div>` : ''}
+      ${submission.senderNote ? `<div style="margin-top:16px;background:rgba(245,158,11,0.15);border-left:3px solid #f59e0b;padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:#fde68a;line-height:1.5;"><strong>Your note:</strong> ${nl2br(submission.senderNote)}</div>` : ''}
     </div>
 
     <!-- View submission CTA -->
@@ -185,7 +257,7 @@ function buildClientEmail(submission: FormSubmission, viewUrl: string): string {
       </table>
     </div>
   `;
-  return emailShell(`We received your ${submission.formTitle} — Maxxlab`, body);
+  return emailShell(`We received your ${esc(submission.formTitle)} — Maxxlab`, body);
 }
 
 // ── Admin notification email ──────────────────────────────────────────────────
@@ -201,7 +273,7 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
       <div style="display:inline-block;background:#fe3030;border-radius:100px;padding:4px 14px;margin-bottom:16px;">
         <span style="font-size:10px;font-weight:700;color:#ffffff;letter-spacing:0.08em;text-transform:uppercase;">New Submission</span>
       </div>
-      <h1 style="margin:0 0 10px;font-size:20px;font-weight:700;color:#ffffff;line-height:1.2;">${submission.formTitle}</h1>
+      <h1 style="margin:0 0 10px;font-size:20px;font-weight:700;color:#ffffff;line-height:1.2;">${esc(submission.formTitle)}</h1>
 
       <!-- Sender info card -->
       <div style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:14px 16px;">
@@ -210,17 +282,17 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
             <td style="font-size:10px;color:#64748b;text-transform:uppercase;letter-spacing:0.07em;padding-bottom:4px;">Submitted by</td>
           </tr>
           <tr>
-            <td style="font-size:16px;font-weight:700;color:#ffffff;">${submission.senderName}</td>
+            <td style="font-size:16px;font-weight:700;color:#ffffff;">${esc(submission.senderName)}</td>
           </tr>
           <tr>
-            <td style="font-size:12px;color:#94a3b8;padding-top:2px;">${submission.senderEmail}</td>
+            <td style="font-size:12px;color:#94a3b8;padding-top:2px;">${esc(submission.senderEmail)}</td>
           </tr>
           <tr>
             <td style="font-size:11px;color:#475569;padding-top:8px;border-top:1px solid rgba(255,255,255,0.06);margin-top:8px;">${submittedAt}</td>
           </tr>
         </table>
       </div>
-      ${submission.senderNote ? `<div style="margin-top:14px;background:rgba(245,158,11,0.12);border-left:3px solid #f59e0b;padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:#fde68a;line-height:1.5;"><strong>Note:</strong> ${submission.senderNote}</div>` : ''}
+      ${submission.senderNote ? `<div style="margin-top:14px;background:rgba(245,158,11,0.12);border-left:3px solid #f59e0b;padding:10px 14px;border-radius:0 8px 8px 0;font-size:13px;color:#fde68a;line-height:1.5;"><strong>Note:</strong> ${nl2br(submission.senderNote)}</div>` : ''}
     </div>
 
     <!-- CTA -->
@@ -244,11 +316,11 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
     <!-- Submission ID footer -->
     <div style="padding:12px 32px 24px;text-align:center;border-top:1px solid #f0f4f8;">
       <p style="margin:0;font-size:11px;color:#94a3b8;">
-        Submission ID: <span style="font-family:monospace;color:#64748b;">${submission.id}</span>
+        Submission ID: <span style="font-family:monospace;color:#64748b;">${esc(submission.id)}</span>
       </p>
     </div>
   `;
-  return emailShell(`New submission: ${submission.formTitle} from ${submission.senderName}`, body);
+  return emailShell(`New submission: ${esc(submission.formTitle)} from ${esc(submission.senderName)}`, body);
 }
 
 // ── Admin subject line ─────────────────────────────────────────────────────────
@@ -318,3 +390,4 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
     return { ok: false, error: msg };
   }
 }
+
