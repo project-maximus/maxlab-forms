@@ -1,6 +1,8 @@
 // ── Field & Form Config types ────────────────────────────────────────────────
 
 export type FieldType =
+  /** Read-only prose block — renders copy, collects no answer */
+  | 'note'
   | 'text'
   | 'email'
   | 'phone'
@@ -22,6 +24,18 @@ export interface FieldOption {
   description?: string;
   badge?: string;
   badgeVariant?: 'red' | 'green' | 'amber' | 'blue';
+}
+
+/**
+ * Show a section only when another field's answer matches. Used by branching
+ * forms — e.g. the hiring form asks which role you're applying for up front and
+ * then shows only that role's questions.
+ */
+export interface ShowIf {
+  /** id of the field to test — must live in a section that is always visible */
+  field: string;
+  /** section shows when the field's value is one of these */
+  equals: string[];
 }
 
 export interface FormField {
@@ -48,6 +62,10 @@ export interface FormField {
   accept?: string;
   /** file: allow multiple uploads for this field */
   multiple?: boolean;
+  /** note: paragraphs of copy; a line starting with "- " renders as a bullet */
+  body?: string[];
+  /** note: renders as a highlighted callout rather than plain prose */
+  variant?: 'plain' | 'callout';
 }
 
 // ── File upload value ─────────────────────────────────────────────────────────
@@ -60,9 +78,12 @@ export interface FileValue {
 
 export interface FormSection {
   id: string;
+  /** Display number. Branching forms renumber visible sections at render time. */
   num: string;
   title: string;
   description?: string;
+  /** Omit to always show; otherwise the section appears only when the rule matches */
+  showIf?: ShowIf;
   fields: FormField[];
 }
 
@@ -78,8 +99,12 @@ export interface FormConfig {
   /** e.g. "Phase 0 · Pre-meeting · Form 1 of 2" */
   eyebrow?: string;
   client: string;
-  /** 'accordion' collapses sections one at a time instead of stacking them all open */
-  layout?: 'stacked' | 'accordion';
+  /**
+   * 'steps' walks one section at a time with back/next navigation;
+   * 'stacked' (default) renders every section down the page.
+   * Both lay a section out as copy on the left, fields on the right.
+   */
+  layout?: 'stacked' | 'steps';
   /** Overrides the default reassurance note above the submit bar */
   footerNote?: string;
   sections: FormSection[];

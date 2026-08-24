@@ -4,6 +4,7 @@ import { getFormBySlug } from '@/forms';
 import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
 import { directionByName, buildAlignmentStatement } from '@/lib/npsi-selector-data';
+import { answerableSections } from '@/lib/form-logic';
 import type { Metadata } from 'next';
 import type { FormSubmission, FormField, FileValue } from '@/lib/types';
 
@@ -57,15 +58,15 @@ function NPSIAlignmentSummary({ submission }: { submission: FormSubmission }) {
   const alignment = buildAlignmentStatement(submission.data);
   return (
     <div className="space-y-4">
-      <div className="rounded-2xl bg-[#0f172a] p-6 print-break-avoid">
+      <div className="rounded-lg bg-brand-ink p-6 print-break-avoid">
         <div className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-red mb-2">Alignment Statement</div>
-        <p className="text-[15px] leading-relaxed text-slate-100">{alignment}</p>
+        <p className="text-[15px] leading-relaxed text-white/90">{alignment}</p>
       </div>
       {direction && (
-        <div className="bg-white border border-brand-line rounded-2xl overflow-hidden shadow-card print-break-avoid">
+        <div className="bg-white border border-brand-line rounded-lg overflow-hidden print-break-avoid">
           <div className="px-6 py-5">
-            <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em] mb-1.5">Chosen Direction</div>
-            <h2 className="font-serif text-2xl text-brand-ink mb-1">{direction.name}</h2>
+            <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.16em] mb-2">Chosen Direction</div>
+            <h2 className="text-[19px] font-medium tracking-[-0.02em] text-brand-ink mb-1">{direction.name}</h2>
             <p className="text-sm text-brand-ink-3">{direction.description}</p>
           </div>
         </div>
@@ -83,9 +84,9 @@ function SectionBlock({
   data: FormSubmission['data'];
 }) {
   return (
-    <div className="bg-white border border-brand-line rounded-2xl overflow-hidden shadow-card print-break-avoid">
+    <div className="bg-white border border-brand-line rounded-lg overflow-hidden print-break-avoid">
       <div className="px-5 py-3.5 bg-brand-bg border-b border-brand-line">
-        <span className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em]">
+        <span className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.16em]">
           Section {num}
         </span>
         <h3 className="font-semibold text-brand-ink text-sm mt-0.5">{title}</h3>
@@ -133,11 +134,9 @@ export default async function ViewPage({ params }: Props) {
       <header className="sticky top-0 z-50 bg-white border-b border-brand-line no-print">
         <div className="max-w-3xl mx-auto px-5 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-brand-ink rounded-lg flex items-center justify-center overflow-hidden">
-              <Logo size={22} />
-            </div>
+            <Logo size={24} />
             <div>
-              <div className="font-semibold text-sm">Maxxlab</div>
+              <div className="font-medium text-sm">Maxxlab</div>
               <div className="font-mono text-[10px] text-brand-ink-3 uppercase tracking-[0.06em]">
                 Submission Viewer
               </div>
@@ -152,26 +151,26 @@ export default async function ViewPage({ params }: Props) {
       <div className="max-w-3xl mx-auto px-5 py-8 space-y-4">
 
         {/* Summary card */}
-        <div className="bg-white border border-brand-line rounded-2xl overflow-hidden shadow-card">
+        <div className="bg-white border border-brand-line rounded-lg overflow-hidden">
           <div className="px-6 pt-6 pb-5 border-b border-brand-line">
-            <div className="inline-flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 text-[11px] font-mono font-semibold px-3 py-1 rounded-full mb-3">
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-              Submitted Successfully
+            <div className="inline-flex items-center gap-2 border border-brand-line text-brand-ink-3 text-[10px] font-mono uppercase tracking-[0.14em] px-2.5 py-1 rounded-md mb-4">
+              <span className="w-1 h-1 bg-brand-red rounded-full" />
+              Submitted
             </div>
-            <h1 className="font-serif text-3xl font-normal mb-1">{submission.formTitle}</h1>
+            <h1 className="text-[26px] font-medium tracking-[-0.025em] leading-snug mb-1.5">{submission.formTitle}</h1>
             <p className="text-sm text-brand-ink-3">Submitted {submittedAt}</p>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-0 divide-y sm:divide-y-0 sm:divide-x divide-brand-line/50">
             <div className="px-6 py-4">
-              <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em] mb-1.5">
+              <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.16em] mb-2">
                 Submitted By
               </div>
               <div className="font-semibold text-brand-ink">{submission.senderName}</div>
               <div className="text-sm text-brand-ink-3">{submission.senderEmail}</div>
             </div>
             <div className="px-6 py-4">
-              <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.06em] mb-1.5">
+              <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.16em] mb-2">
                 Submission ID
               </div>
               <div className="font-mono text-xs text-brand-ink-2 break-all">{submission.id}</div>
@@ -179,7 +178,7 @@ export default async function ViewPage({ params }: Props) {
           </div>
 
           {submission.senderNote && (
-            <div className="mx-6 mb-5 mt-1 p-3.5 bg-amber-50 border-l-[3px] border-amber-400 rounded-r-xl text-sm text-amber-900">
+            <div className="mx-6 mb-5 mt-1 p-3.5 bg-brand-bg border-l-2 border-brand-ink rounded-r-md text-sm text-brand-ink-2">
               <strong>Note:</strong> {submission.senderNote}
             </div>
           )}
@@ -192,7 +191,9 @@ export default async function ViewPage({ params }: Props) {
 
         {/* Form sections */}
         {form ? (
-          form.sections.map(section => (
+          // Same branching rules the applicant saw — a role-specific form should
+          // not read back as a wall of "Not specified" for the other roles.
+          answerableSections(form, submission.data).map(section => (
             <SectionBlock
               key={section.id}
               num={section.num}
@@ -203,7 +204,7 @@ export default async function ViewPage({ params }: Props) {
           ))
         ) : (
           // Fallback: dump all data if form config not found
-          <div className="bg-white border border-brand-line rounded-2xl overflow-hidden shadow-card">
+          <div className="bg-white border border-brand-line rounded-lg overflow-hidden">
             <div className="px-5 py-3.5 bg-brand-bg border-b border-brand-line">
               <h3 className="font-semibold text-brand-ink text-sm">Submission Data</h3>
             </div>

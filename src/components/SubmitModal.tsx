@@ -22,39 +22,39 @@ export default function SubmitModal({ onClose, onSubmit, defaultName, defaultEma
       style={{ background: 'rgba(15,23,42,0.6)', backdropFilter: 'blur(4px)' }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}
     >
-      <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl animate-slide-up overflow-hidden">
+      <div className="bg-white w-full sm:max-w-md rounded-t-xl sm:rounded-lg border border-brand-line shadow-xl animate-slide-up overflow-hidden">
         {/* Modal header */}
-        <div className="bg-[#0f172a] px-7 py-6">
+        <div className="px-7 pt-7 pb-6 border-b border-brand-line">
           <div className="flex items-center gap-3 mb-3">
-            <Logo size={32} white />
+            <Logo size={26} />
             <div>
-              <div className="text-white font-semibold text-sm">Maxxlab</div>
-              <div className="text-slate-400 text-[10px] font-mono uppercase tracking-widest">Form Submission</div>
+              <div className="text-brand-ink font-medium text-sm">Maxxlab</div>
+              <div className="text-brand-ink-4 text-[10px] font-mono uppercase tracking-[0.16em]">Form Submission</div>
             </div>
           </div>
-          <h2 className="font-serif text-2xl text-white font-normal">Ready to submit?</h2>
-          <p className="text-slate-400 text-[13px] mt-1 leading-relaxed">
+          <h2 className="text-[20px] font-medium tracking-[-0.02em] text-brand-ink">Ready to submit?</h2>
+          <p className="text-brand-ink-3 text-[13px] mt-1.5 leading-relaxed">
             We'll email you a copy with a secure link to view your full submission.
           </p>
         </div>
 
         <div className="px-7 py-6 space-y-5">
           <div>
-            <label className="block text-[11px] font-medium text-brand-ink-3 uppercase tracking-wide mb-1.5">
+            <label className="block font-mono text-[10px] font-medium text-brand-ink-3 uppercase tracking-[0.13em] mb-1.5">
               Your name <span className="text-brand-red">·</span>
             </label>
             <input type="text" value={name} onChange={e => setName(e.target.value)}
               placeholder="Full name" autoComplete="name" className="field-line" />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-brand-ink-3 uppercase tracking-wide mb-1.5">
+            <label className="block font-mono text-[10px] font-medium text-brand-ink-3 uppercase tracking-[0.13em] mb-1.5">
               Your email <span className="text-brand-red">·</span>
             </label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)}
               placeholder="email@company.com" autoComplete="email" className="field-line" />
           </div>
           <div>
-            <label className="block text-[11px] font-medium text-brand-ink-3 uppercase tracking-wide mb-1.5">
+            <label className="block font-mono text-[10px] font-medium text-brand-ink-3 uppercase tracking-[0.13em] mb-1.5">
               Additional note
             </label>
             <textarea value={note} onChange={e => setNote(e.target.value)}

@@ -25,7 +25,7 @@ function programFields(id: string): FormField[] {
       label: "What you'll learn — skills checklist",
       hint: 'One skill per line. 4–8 short skills, shown as a checklist under the program overview.',
       placeholder: 'Patient Vitals\nEKG Basics\nPhlebotomy\nClinical Procedures',
-      rows: 3,
+      rows: 4,
     },
     {
       id: `${id}_overview_notes`,
@@ -148,7 +148,7 @@ const nghiProgramContent: FormConfig = {
   description:
     "Fill in the program-specific details below for each of NGHI's 11 programs — skills, curriculum, hands-on training, certification, and a graduate story. Fill what you have for each program and skip what you don't; we'll follow up on any gaps.",
   client: 'NextGen Health Institute (NGHI)',
-  layout: 'accordion',
+  layout: 'steps',
   footerNote: "Nothing here is required — fill in what you have for each program, we'll follow up on the rest.",
   sections: programSections,
 };

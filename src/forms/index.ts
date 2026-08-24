@@ -6,6 +6,7 @@ import websiteTransformation from './website-transformation';
 import hiringAiFullstack from './hiring-ai-fullstack';
 import ispotPricingCall from './ispot-pricing-call';
 import nghiProgramContent from './nghi-program-content';
+import hiringProductTeam from './hiring-product-team';
 
 // ── Form registry ─────────────────────────────────────────────────────────────
 // Add new forms here — they'll appear on the home page automatically.
@@ -18,6 +19,7 @@ const forms: FormConfig[] = [
   hiringAiFullstack,
   ispotPricingCall,
   nghiProgramContent,
+  hiringProductTeam,
 ];
 
 export function getAllForms(): FormConfig[] {

@@ -8,7 +8,7 @@ const hiringAiFullstack: FormConfig = {
   eyebrow: 'Maxxlab · Hiring · AI-Powered Product Infrastructure · Remote',
   description: "We're hiring AI and Full-Stack engineers to build production-grade AI products with us long-term. Tell us about yourself, what you're strongest in, and share your work.",
   client: 'Maxxlab',
-  layout: 'accordion',
+  layout: 'steps',
   footerNote: "Fields marked with a dot are required. Everything else helps us understand your fit faster — share as much as you can.",
   sections: [
     {

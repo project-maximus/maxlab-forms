@@ -1,6 +1,7 @@
 import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
 import { buildAlignmentStatement } from './npsi-selector-data';
+import { answerableSections } from './form-logic';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL        ?? 'admin@maxxlab.tech';
@@ -150,7 +151,12 @@ function buildSections(submission: FormSubmission): string {
     return typeof val === 'string' && val.trim() !== '';
   };
 
-  const totalFields = form.sections.reduce((n, s) => n + s.fields.length, 0);
+  // Branching forms only asked a subset of their sections — render what this
+  // applicant actually saw, not every branch. Copy-only sections (role briefs)
+  // are dropped: they collect nothing, so they are neither rows nor "left blank".
+  const shown = answerableSections(form, d);
+
+  const totalFields = shown.reduce((n, s) => n + s.fields.length, 0);
   const answersOnly = totalFields > ANSWERS_ONLY_FIELD_COUNT;
 
   const empty: string[] = [];
@@ -158,7 +164,7 @@ function buildSections(submission: FormSubmission): string {
   let size = 0;
   let truncatedFrom = -1;
 
-  form.sections.forEach((s, i) => {
+  shown.forEach((s, i) => {
     const fields = answersOnly ? s.fields.filter(f => answered(f.id)) : s.fields;
     if (fields.length === 0) { empty.push(s.title); return; }
     if (truncatedFrom >= 0) return;
@@ -184,7 +190,7 @@ function buildSections(submission: FormSubmission): string {
   }
 
   if (truncatedFrom >= 0) {
-    const remaining = form.sections.length - truncatedFrom;
+    const remaining = shown.length - truncatedFrom;
     chunks.push(noteBlock(
       `<strong>${remaining} more section${remaining === 1 ? '' : 's'} not shown</strong> — this email would be clipped by most mail clients. Open the full submission above to read everything.`
     ));
@@ -390,4 +396,5 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
     return { ok: false, error: msg };
   }
 }
+
 

@@ -12,30 +12,93 @@
 
 * { box-sizing: border-box; }
 
-body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: 'ss01', 'cv01', 'tnum' 0;
+}
 
-/* ── Underline input style ───────────────────────────────────────────────── */
+/* Headings are set in the sans face with tight tracking — no display serif. */
+h1, h2, h3 { letter-spacing: -0.022em; }
+
+/* ── Input style ─────────────────────────────────────────────────────────────
+   Boxed fields. Every colour here is a brand token:
+   #e2e8f0 line · #cbd5e1 line-2 · #0f172a ink · #94a3b8 ink-4 · #f6f7f9 bg    */
 .field-line {
   width: 100%;
-  background: transparent;
-  border: none;
-  border-bottom: 1.5px solid #e2e8f0;
-  padding: 11px 0 11px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 11px 13px;
   font-size: 15px;
+  letter-spacing: -0.005em;
   font-family: var(--font-geist), sans-serif;
   line-height: 1.5;
   color: #0f172a;
   outline: none;
-  transition: border-color 0.18s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   display: block;
+  text-overflow: ellipsis;
 }
-.field-line:focus { border-bottom-color: #fe3030; }
-.field-line::placeholder { color: #94a3b8; }
+.field-line:hover:not(:focus):not(:disabled) { border-color: #cbd5e1; }
+.field-line:focus {
+  border-color: #0f172a;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+}
+
+/* Placeholders sit a clear step below the answer text and never italicise —
+   several forms use them for worked examples, so they must stay readable
+   without ever being mistaken for a real value. */
+.field-line::placeholder {
+  color: #94a3b8;
+  font-style: normal;
+  opacity: 1;
+}
+.field-line:focus::placeholder { color: #cbd5e1; }
 
 .field-line-area {
   resize: vertical;
-  min-height: 88px;
-  padding: 11px 0;
+  /* Floor only — the `rows` attribute sets the real height so a field sized for
+     a long example placeholder actually shows all of it. */
+  min-height: 84px;
+  padding: 11px 13px;
+  /* Multi-line example placeholders shouldn't spill out of the box */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+/* Native select: leave room for the chevron the component draws */
+select.field-line { padding-right: 36px; cursor: pointer; }
+select.field-line:invalid, select.field-line option[value=""] { color: #94a3b8; }
+
+input[type="date"].field-line { min-height: 46px; }
+
+/* ── Side-by-side field pairs ────────────────────────────────────────────────
+   Each field is label / hint / control. Only one of a pair often has a hint, so
+   without a shared row track the two input boxes end up on different baselines.
+   Subgrid lines all three slots up; the @supports fallback bottom-aligns them. */
+.field-pair { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.field-cell > * { min-width: 0; }
+
+@media (min-width: 640px) {
+  .field-pair {
+    grid-template-columns: 1fr 1fr;
+    column-gap: 20px;
+    /* row-gap must be 0 here: the three tracks are this field's own
+       label / hint / control slots, not a gap between separate fields. */
+    row-gap: 0;
+    grid-template-rows: auto auto auto;
+  }
+  .field-pair > .field-cell {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 0;
+  }
+  @supports not (grid-template-rows: subgrid) {
+    .field-pair { grid-template-rows: none; align-items: end; }
+    .field-pair > .field-cell { display: block; }
+  }
 }
 
 /* ── Scrollbar ───────────────────────────────────────────────────────────── */
@@ -61,5 +124,5 @@ body { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; 
   .no-print { display: none !important; }
   body { background: white !important; }
   .print-break-avoid { break-inside: avoid; page-break-inside: avoid; }
-  .field-line { border-bottom-color: #cbd5e1 !important; }
+  .field-line { border-color: #cbd5e1 !important; box-shadow: none !important; }
 }

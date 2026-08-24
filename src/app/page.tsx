@@ -22,12 +22,10 @@ export default async function HomePage() {
       <header className="bg-white border-b border-brand-line sticky top-0 z-50">
         <div className="max-w-5xl mx-auto px-5 py-3.5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-brand-ink rounded-lg flex items-center justify-center overflow-hidden">
-              <Logo size={22} />
-            </div>
+            <Logo size={24} />
             <div>
-              <div className="font-semibold text-sm">Maxxlab</div>
-              <div className="font-mono text-[10px] text-brand-ink-3 uppercase tracking-[0.06em]">
+              <div className="font-medium text-sm">Maxxlab</div>
+              <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.16em]">
                 Form Builder
               </div>
             </div>
@@ -47,11 +45,11 @@ export default async function HomePage() {
 
         {/* Hero */}
         <div>
-          <div className="font-mono text-[11px] text-brand-ink-4 uppercase tracking-[0.08em] mb-2">
+          <div className="font-mono text-[10px] text-brand-ink-4 uppercase tracking-[0.18em] mb-3">
             Maxxlab · Internal
           </div>
-          <h1 className="font-serif text-4xl md:text-5xl font-normal mb-3">
-            Client <em className="italic text-brand-red">intake</em> forms
+          <h1 className="text-[38px] md:text-[46px] font-medium tracking-[-0.032em] leading-[1.06] mb-4">
+            Client <span className="text-brand-ink-4">intake</span> forms
           </h1>
           <p className="text-brand-ink-2 text-base max-w-lg">
             Professional branded discovery forms. Fill, submit, and review — all in one place.
@@ -79,7 +77,7 @@ export default async function HomePage() {
                         {form.title}
                       </h3>
                     </div>
-                    <span className="inline-block bg-green-50 text-green-700 border border-green-200 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
+                    <span className="inline-block bg-brand-bg text-brand-ink-3 border border-brand-line text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
                       ACTIVE
                     </span>
                   </div>
@@ -131,7 +129,7 @@ export default async function HomePage() {
                       Website Transformation — First Meeting
                     </h3>
                   </div>
-                  <span className="inline-block bg-green-50 text-green-700 border border-green-200 text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
+                  <span className="inline-block bg-brand-bg text-brand-ink-3 border border-brand-line text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full flex-shrink-0 mt-0.5">
                     ACTIVE
                   </span>
                 </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
+import { visibleSections, inputFields, progressFor, missingRequired } from '@/lib/form-logic';
 import Logo from './Logo';
 import SubmitModal from './SubmitModal';
 import Toast from './Toast';
@@ -20,15 +21,11 @@ const toggle = (a: string[], val: string, on: boolean) =>
 const fmtSize = (b: number) => (b < 1024 ? `${b} B` : b < 1048576 ? `${(b / 1024).toFixed(0)} KB` : `${(b / 1048576).toFixed(1)} MB`);
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
-function Badge({ text, variant }: { text: string; variant?: FieldOption['badgeVariant'] }) {
-  const cls = {
-    red:   'bg-red-50 text-red-600 border-red-200',
-    green: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-    amber: 'bg-amber-50 text-amber-600 border-amber-200',
-    blue:  'bg-blue-50 text-blue-600 border-blue-200',
-  }[variant ?? 'blue'] ?? 'bg-blue-50 text-blue-600 border-blue-200';
+// `variant` is accepted but deliberately unused — the palette is monochrome and
+// the badge text already says what it means.
+function Badge({ text }: { text: string; variant?: FieldOption['badgeVariant'] }) {
   return (
-    <span className={clsx('inline-block font-mono text-[9px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded border mb-1', cls)}>
+    <span className="inline-block font-mono text-[9px] font-medium tracking-[0.14em] uppercase px-1.5 py-[3px] border border-brand-line text-brand-ink-3">
       {text}
     </span>
   );
@@ -38,10 +35,10 @@ function Badge({ text, variant }: { text: string; variant?: FieldOption['badgeVa
 function RadioDot({ active }: { active: boolean }) {
   return (
     <span className={clsx(
-      'flex-shrink-0 w-[18px] h-[18px] rounded-full border-2 flex items-center justify-center transition-all duration-150 mt-0.5',
-      active ? 'border-brand-red bg-brand-red' : 'border-brand-line-2 group-hover:border-brand-red/60'
+      'flex-shrink-0 w-[16px] h-[16px] rounded-full border flex items-center justify-center transition-colors duration-150 mt-[3px]',
+      active ? 'border-brand-ink bg-brand-ink' : 'border-brand-line-2 group-hover:border-brand-ink-3'
     )}>
-      {active && <span className="w-[7px] h-[7px] rounded-full bg-white block" />}
+      {active && <span className="w-[6px] h-[6px] rounded-full bg-white block" />}
     </span>
   );
 }
@@ -50,8 +47,8 @@ function RadioDot({ active }: { active: boolean }) {
 function CheckDot({ active }: { active: boolean }) {
   return (
     <span className={clsx(
-      'flex-shrink-0 w-[18px] h-[18px] rounded-[5px] border-2 flex items-center justify-center transition-all duration-150 mt-0.5',
-      active ? 'border-brand-red bg-brand-red' : 'border-brand-line-2 group-hover:border-brand-red/60'
+      'flex-shrink-0 w-[16px] h-[16px] rounded-[3px] border flex items-center justify-center transition-colors duration-150 mt-[3px]',
+      active ? 'border-brand-ink bg-brand-ink' : 'border-brand-line-2 group-hover:border-brand-ink-3'
     )}>
       {active && (
         <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
@@ -104,7 +101,7 @@ function DateField({ field, values, onChange }: FP) {
       value={str(values, field.id)}
       onChange={e => onChange(field.id, e.target.value)}
       required={field.required}
-      className="field-line max-w-[220px]"
+      className="field-line max-w-[240px]"
     />
   );
 }
@@ -116,12 +113,12 @@ function SelectField({ field, values, onChange }: FP) {
         value={str(values, field.id)}
         onChange={e => onChange(field.id, e.target.value)}
         required={field.required}
-        className="field-line appearance-none pr-8 cursor-pointer"
+        className="field-line appearance-none"
       >
         <option value="">Select…</option>
         {field.options?.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
       </select>
-      <svg className="pointer-events-none absolute right-0 bottom-3.5 w-4 h-4 text-brand-ink-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-brand-ink-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
       </svg>
     </div>
@@ -142,10 +139,10 @@ function RadioField({ field, values, onChange }: FP) {
             type="button"
             onClick={() => onChange(field.id, opt.value)}
             className={clsx(
-              'px-5 py-2.5 rounded-xl text-sm font-medium border-2 transition-all duration-150 select-none',
+              'px-4 py-2 rounded-md text-[13px] font-medium border transition-colors duration-150 select-none',
               selected === opt.value
-                ? 'bg-brand-ink text-white border-brand-ink shadow-sm'
-                : 'bg-white text-brand-ink-2 border-brand-line hover:border-brand-red hover:text-brand-red hover:bg-red-50/30'
+                ? 'bg-brand-ink text-white border-brand-ink'
+                : 'bg-white text-brand-ink-2 border-brand-line hover:border-brand-ink-3 hover:text-brand-ink'
             )}
           >
             {opt.label}
@@ -163,18 +160,18 @@ function RadioField({ field, values, onChange }: FP) {
           <label
             key={opt.value}
             className={clsx(
-              'group flex items-start gap-2.5 p-3.5 border-2 rounded-xl cursor-pointer transition-all duration-150',
+              'group flex items-start gap-3 p-4 border rounded-md cursor-pointer transition-colors duration-150',
               selected === opt.value
-                ? 'border-brand-red bg-red-50/40 shadow-sm'
-                : 'border-brand-line bg-white hover:border-brand-red/40 hover:bg-red-50/10'
+                ? 'border-brand-ink bg-brand-bg'
+                : 'border-brand-line bg-white hover:border-brand-ink-4'
             )}
           >
             <input type="radio" name={field.id} value={opt.value} checked={selected === opt.value}
               onChange={() => onChange(field.id, opt.value)} className="sr-only" />
             <RadioDot active={selected === opt.value} />
             <div className="flex-1 min-w-0">
-              {opt.badge && <Badge text={opt.badge} variant={opt.badgeVariant} />}
-              <div className="text-sm font-semibold text-brand-ink leading-tight">{opt.label}</div>
+              {opt.badge && <div className="mb-2"><Badge text={opt.badge} variant={opt.badgeVariant} /></div>}
+              <div className="text-sm font-medium text-brand-ink leading-tight">{opt.label}</div>
               {opt.description && <div className="text-[11px] text-brand-ink-3 mt-0.5 leading-snug">{opt.description}</div>}
             </div>
           </label>
@@ -190,18 +187,21 @@ function RadioField({ field, values, onChange }: FP) {
         <label
           key={opt.value}
           className={clsx(
-            'group flex items-start gap-3.5 px-4 py-3.5 border-2 rounded-xl cursor-pointer transition-all duration-150',
+            'group flex items-start gap-3 px-4 py-3 border rounded-md cursor-pointer transition-colors duration-150',
             selected === opt.value
-              ? 'border-brand-red bg-red-50/40'
-              : 'border-brand-line bg-white hover:border-brand-red/30 hover:bg-red-50/10'
+              ? 'border-brand-ink bg-brand-bg'
+              : 'border-brand-line bg-white hover:border-brand-ink-4'
           )}
         >
           <input type="radio" name={field.id} value={opt.value} checked={selected === opt.value}
             onChange={() => onChange(field.id, opt.value)} className="sr-only" />
           <RadioDot active={selected === opt.value} />
-          <div className="flex-1">
-            <div className="text-[15px] font-medium text-brand-ink leading-snug">{opt.label}</div>
-            {opt.description && <div className="text-[13px] text-brand-ink-3 mt-0.5">{opt.description}</div>}
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1">
+              <span className="text-[14px] font-medium text-brand-ink leading-snug">{opt.label}</span>
+              {opt.badge && <Badge text={opt.badge} variant={opt.badgeVariant} />}
+            </div>
+            {opt.description && <div className="text-[13px] text-brand-ink-3 mt-1 leading-relaxed">{opt.description}</div>}
           </div>
         </label>
       ))}
@@ -220,10 +220,10 @@ function CheckboxGroupField({ field, values, onChange, showToast }: FP) {
           <label
             key={opt.value}
             className={clsx(
-              'group flex items-start gap-3.5 px-4 py-3.5 border-2 rounded-xl cursor-pointer transition-all duration-150',
+              'group flex items-start gap-3 px-4 py-3 border rounded-md cursor-pointer transition-colors duration-150',
               checked
-                ? 'border-brand-red bg-red-50/40'
-                : 'border-brand-line bg-white hover:border-brand-red/30 hover:bg-red-50/10'
+                ? 'border-brand-ink bg-brand-bg'
+                : 'border-brand-line bg-white hover:border-brand-ink-4'
             )}
           >
             <input type="checkbox" value={opt.value} checked={checked}
@@ -237,8 +237,8 @@ function CheckboxGroupField({ field, values, onChange, showToast }: FP) {
               className="sr-only" />
             <CheckDot active={checked} />
             <div className="flex-1">
-              <div className="text-[15px] font-medium text-brand-ink leading-snug">{opt.label}</div>
-              {opt.description && <div className="text-[13px] text-brand-ink-3 mt-0.5">{opt.description}</div>}
+              <div className="text-[14px] font-medium text-brand-ink leading-snug">{opt.label}</div>
+              {opt.description && <div className="text-[13px] text-brand-ink-3 mt-1 leading-relaxed">{opt.description}</div>}
             </div>
           </label>
         );
@@ -313,7 +313,7 @@ function FileField({ field, values, onChange, showToast }: FP) {
   return (
     <div>
       <label
-        className="flex flex-col items-center justify-center gap-1 text-center px-4 py-6 border-2 border-dashed border-brand-line rounded-xl cursor-pointer transition-all duration-150 hover:border-brand-red hover:bg-red-50/10"
+        className="flex flex-col items-center justify-center gap-1 text-center px-4 py-6 border border-dashed border-brand-line-2 rounded-md cursor-pointer transition-colors duration-150 hover:border-brand-ink-3 hover:bg-brand-bg"
         onDragOver={e => e.preventDefault()}
         onDrop={e => { e.preventDefault(); handleFiles(e.dataTransfer.files); }}
       >
@@ -333,13 +333,13 @@ function FileField({ field, values, onChange, showToast }: FP) {
       {list.length > 0 && (
         <div className="mt-2.5 flex flex-col gap-1.5">
           {list.map((f, i) => (
-            <div key={`${f.url}-${i}`} className="flex items-center gap-2.5 px-3 py-2 border border-brand-line rounded-lg bg-white text-[13px]">
-              <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 truncate text-brand-ink hover:text-brand-red transition-colors">
+            <div key={`${f.url}-${i}`} className="flex items-center gap-2.5 px-3 py-2 border border-brand-line rounded-md bg-white text-[13px]">
+              <a href={f.url} target="_blank" rel="noopener noreferrer" className="flex-1 min-w-0 truncate text-brand-ink underline decoration-brand-line-2 underline-offset-2 hover:decoration-brand-ink transition-colors">
                 {f.name}
               </a>
               <span className="font-mono text-[11px] text-brand-ink-4 flex-shrink-0">{fmtSize(f.size)}</span>
               <button type="button" onClick={() => removeFile(i)}
-                className="flex-shrink-0 text-brand-ink-4 hover:text-red-600 transition-colors text-base leading-none px-1">
+                className="flex-shrink-0 text-brand-ink-4 hover:text-brand-red transition-colors text-base leading-none px-1">
                 ×
               </button>
             </div>
@@ -350,8 +350,34 @@ function FileField({ field, values, onChange, showToast }: FP) {
   );
 }
 
+// ── Note: read-only copy (role briefs, callouts) ──────────────────────────────
+function NoteField({ field }: FP) {
+  const blocks = field.body ?? [];
+  const callout = field.variant === 'callout';
+  return (
+    <div className={clsx(
+      'text-[14px] leading-relaxed',
+      callout
+        ? 'rounded-md border-l-2 border-brand-ink bg-brand-bg px-5 py-4 text-brand-ink-2'
+        : 'text-brand-ink-2'
+    )}>
+      {blocks.map((block, i) =>
+        block.startsWith('- ') ? (
+          <div key={i} className="flex gap-2.5 mt-1.5">
+            <span className="mt-[9px] w-[3px] h-[3px] rounded-full bg-brand-ink-4 flex-shrink-0" />
+            <span className="flex-1">{block.slice(2)}</span>
+          </div>
+        ) : (
+          <p key={i} className={i === 0 ? '' : 'mt-3'}>{block}</p>
+        )
+      )}
+    </div>
+  );
+}
+
 function FieldRenderer(props: FP) {
   switch (props.field.type) {
+    case 'note':          return <NoteField {...props} />;
     case 'textarea':      return <TextareaField {...props} />;
     case 'date':          return <DateField {...props} />;
     case 'select':        return <SelectField {...props} />;
@@ -364,40 +390,45 @@ function FieldRenderer(props: FP) {
 }
 
 function FieldWrapper({ field, values, onChange, showToast }: FP) {
-  return (
-    <div>
-      {field.label && (
-        <div className="flex items-center gap-1.5 mb-1">
-          <label className="text-[13px] font-medium text-brand-ink-3 uppercase tracking-wide">
+  if (field.type === 'note') {
+    return (
+      <div>
+        {field.label && (
+          <div className="font-mono text-[10px] font-medium uppercase tracking-[0.14em] text-brand-ink-3 mb-2.5 pb-2 border-b border-brand-line">
             {field.label}
-          </label>
-          {field.required && <span className="text-brand-red text-base leading-none font-bold">·</span>}
-        </div>
-      )}
-      {field.hint && <p className="text-[12px] text-brand-ink-4 italic mb-2 leading-relaxed">{field.hint}</p>}
-      <FieldRenderer field={field} values={values} onChange={onChange} showToast={showToast} />
+          </div>
+        )}
+        <FieldRenderer field={field} values={values} onChange={onChange} showToast={showToast} />
+      </div>
+    );
+  }
+  return (
+    <div className="field-cell">
+      <div>
+        {field.label && (
+          <div className="flex items-start gap-1.5">
+            <label className="text-[13.5px] font-normal text-brand-ink-2 leading-snug">
+              {field.label}
+            </label>
+            {field.required && <span className="mt-[6px] w-1 h-1 rounded-full bg-brand-red flex-shrink-0" aria-hidden />}
+          </div>
+        )}
+      </div>
+      <div>
+        {field.hint && <p className="text-[12.5px] text-brand-ink-4 mt-1 leading-relaxed max-w-xl">{field.hint}</p>}
+      </div>
+      <div className="mt-1.5">
+        <FieldRenderer field={field} values={values} onChange={onChange} showToast={showToast} />
+      </div>
     </div>
   );
 }
 
-// ── Scroll progress hook ──────────────────────────────────────────────────────
-function useScrollProgress() {
-  const [p, setP] = useState(0);
-  useEffect(() => {
-    const onScroll = () => {
-      const el = document.documentElement;
-      const total = el.scrollHeight - el.clientHeight;
-      setP(total > 0 ? (window.scrollY / total) * 100 : 0);
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-  return p;
-}
-
 // ── Main FormClient ───────────────────────────────────────────────────────────
 export default function FormClient({ form }: { form: FormConfig }) {
-  const isAccordion = form.layout === 'accordion';
+  // 'steps' walks one section at a time with prev/next; 'stacked' shows them all.
+  // Either way a section is laid out as copy on the left, fields on the right.
+  const isStepped = form.layout === 'steps';
   const STORAGE_KEY = `maxxlab-form-${form.slug}`;
   const [values, setValues] = useState<FormValues>(() => {
     const defaults: FormValues = {};
@@ -406,63 +437,13 @@ export default function FormClient({ form }: { form: FormConfig }) {
     }));
     return defaults;
   });
-  const [lastSaved, setLastSaved] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
-  const [openSection, setOpenSection] = useState<string | null>(form.sections[0]?.id ?? null);
-  // A collapsed accordion body is only visually hidden — its fields still lay
-  // out inside the clipped box, and the browser keeps counting them in the
-  // page's scrollable height. With 11 sections that left ~1400px of dead scroll
-  // space under the form. Once a section has finished animating shut we stop
-  // rendering its fields entirely; `values` is the source of truth, so nothing
-  // is lost when they remount.
-  const [shut, setShut] = useState<Record<string, boolean>>(() => {
-    const init: Record<string, boolean> = {};
-    if (form.layout === 'accordion') {
-      form.sections.forEach((sec, i) => { if (i !== 0) init[sec.id] = true; });
-    }
-    return init;
-  });
+  const [step, setStep] = useState(0);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const shutTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>({});
+  const stepTopRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
-  const progress = useScrollProgress();
-
-  useEffect(() => {
-    const timers = shutTimers.current;
-    return () => { Object.values(timers).forEach(clearTimeout); };
-  }, []);
-
-  // Single entry point for opening/closing so the "finished shutting" bookkeeping
-  // can't drift out of sync with `openSection`.
-  const changeOpen = useCallback((next: string | null) => {
-    setOpenSection(prev => {
-      if (prev && prev !== next) {
-        clearTimeout(shutTimers.current[prev]);
-        shutTimers.current[prev] = setTimeout(
-          () => setShut(m => ({ ...m, [prev]: true })),
-          360, // just past the 300ms grid-template-rows transition
-        );
-      }
-      return next;
-    });
-    if (next) {
-      clearTimeout(shutTimers.current[next]);
-      setShut(m => (m[next] ? { ...m, [next]: false } : m));
-    }
-  }, []);
-
-  function goToSection(id: string) {
-    changeOpen(id);
-    // The accordion body animates its grid rows for 300ms and the section being
-    // collapsed shrinks the page underneath us, so a single scroll on the next
-    // frame lands in the wrong place. Anchor once for immediate feedback, then
-    // again after the transition settles.
-    const scroll = () => sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    requestAnimationFrame(scroll);
-    setTimeout(scroll, 340);
-  }
 
   // Drafts persist in localStorage rather than per-tab storage — long intake
   // forms (the NGHI program content form runs 11 sections deep) get filled
@@ -471,7 +452,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
-      if (raw) { setValues(prev => ({ ...prev, ...JSON.parse(raw) })); setLastSaved('restored'); }
+      if (raw) { setValues(prev => ({ ...prev, ...JSON.parse(raw) })); }
     } catch { /* ignore */ }
   }, [STORAGE_KEY]);
 
@@ -480,16 +461,78 @@ export default function FormClient({ form }: { form: FormConfig }) {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
+  // Branching changes how many sections exist, so the step index is always
+  // clamped against the *current* visible list rather than trusted on its own.
+  const sections = visibleSections(form, values);
+  const stepIndex = Math.min(step, Math.max(0, sections.length - 1));
+
+  const scrollToStepTop = useCallback(() => {
+    requestAnimationFrame(() => {
+      stepTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, []);
+
+  const goToStep = useCallback((i: number, sectionCount: number) => {
+    setStep(Math.max(0, Math.min(i, sectionCount - 1)));
+    scrollToStepTop();
+  }, [scrollToStepTop]);
+
+  // Used by required-field validation and by branch auto-advance: land on
+  // whichever step owns a given section, in both stepped and stacked layouts.
+  const goToSectionId = useCallback((id: string) => {
+    const list = visibleSections(form, values);
+    const i = list.findIndex(sec => sec.id === id);
+    if (i < 0) return;
+    if (isStepped) { goToStep(i, list.length); return; }
+    requestAnimationFrame(() => {
+      sectionRefs.current[id]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }, [form, values, isStepped, goToStep]);
+
   const handleChange = useCallback((id: string, value: string | string[] | FileValue[]) => {
     setValues(prev => {
       const next = { ...prev, [id]: value };
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
       autosaveTimer.current = setTimeout(() => {
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); setLastSaved(new Date().toLocaleTimeString()); } catch { /* ignore */ }
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       }, 600);
       return next;
     });
   }, [STORAGE_KEY]);
+
+  // Picking the branch field (e.g. which role you're applying for) should carry
+  // you straight into that role's questions rather than leaving you on the picker.
+  const branchField = form.sections.find(s => s.showIf)?.showIf?.field;
+  const branchValue = branchField ? str(values, branchField) : '';
+  const lastBranch = useRef(branchValue);
+  useEffect(() => {
+    if (!branchField || lastBranch.current === branchValue) return;
+    lastBranch.current = branchValue;
+    if (!branchValue) return;
+    const vis = visibleSections(form, values);
+    const at = vis.findIndex(sec => sec.fields.some(f => f.id === branchField));
+    const next = vis[at + 1];
+    if (next) goToSectionId(next.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [branchValue]);
+
+  // Every route to the submit modal goes through here. Required answers are
+  // checked *before* the modal opens, so nobody fills in their name and email
+  // only to be told the form isn't finished.
+  const blockers = missingRequired(form, values);
+
+  function requestSubmit() {
+    if (blockers.length === 0) { setModalOpen(true); return; }
+    const first = blockers[0];
+    const owner = sections.find(sec => sec.fields.some(f => f.id === first.id));
+    if (owner) goToSectionId(owner.id);
+    showToast(
+      blockers.length === 1
+        ? `"${first.label ?? first.id}" is required before you can submit.`
+        : `${blockers.length} required questions still need an answer — starting with "${first.label ?? first.id}".`,
+      true,
+    );
+  }
 
   function handleExport() {
     const blob = new Blob([JSON.stringify({ form: form.title, exported_at: new Date().toISOString(), data: values }, null, 2)], { type: 'application/json' });
@@ -507,6 +550,23 @@ export default function FormClient({ form }: { form: FormConfig }) {
   async function handleSubmit(senderName: string, senderEmail: string, senderNote: string) {
     if (!senderName.trim()) { showToast('Please enter your name.', true); return; }
     if (!senderEmail.includes('@')) { showToast('Please enter a valid email.', true); return; }
+
+    // The submit button posts with fetch, so the inputs' `required` attribute
+    // never gets a chance to fire — check it here and send them to the gap.
+    const missing = missingRequired(form, values);
+    if (missing.length > 0) {
+      const first = missing[0];
+      const owner = visibleSections(form, values).find(sec => sec.fields.some(f => f.id === first.id));
+      setModalOpen(false);
+      if (owner) goToSectionId(owner.id);
+      showToast(
+        missing.length === 1
+          ? `"${first.label ?? first.id}" is required.`
+          : `${missing.length} required questions still need an answer — starting with "${first.label ?? first.id}".`,
+        true,
+      );
+      return;
+    }
     setSubmitting(true);
     try {
       const res = await fetch('/api/submit', {
@@ -527,269 +587,237 @@ export default function FormClient({ form }: { form: FormConfig }) {
     }
   }
 
-  const totalFields = form.sections.reduce((a, s) => a + s.fields.length, 0);
-  const answered = Object.values(values).filter(v => (Array.isArray(v) ? v.length > 0 : v !== '')).length;
-  const pctAnswered = totalFields > 0 ? Math.round((answered / totalFields) * 100) : 0;
+  const { total: totalFields, pct: pctAnswered } = progressFor(form, values);
 
   return (
     <>
-      {/* ── Scroll progress bar ── */}
-      <div className="fixed top-0 left-0 right-0 z-[100] h-[3px] bg-brand-line/40 no-print">
-        <div
-          className="h-full bg-brand-red transition-all duration-100 ease-out"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-
-      {/* ── Sticky header ── */}
-      <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-sm border-b border-brand-line/60 no-print" style={{ top: '3px' }}>
-        <div className="max-w-2xl mx-auto px-6 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 bg-brand-ink rounded-lg flex items-center justify-center overflow-hidden">
-              <Logo size={22} white />
-            </div>
-            <span className="font-semibold text-sm text-brand-ink hidden sm:block">Maxxlab</span>
-            <span className="text-brand-line hidden sm:block">·</span>
-            <span className="font-mono text-[10px] text-brand-ink-3 uppercase tracking-wider hidden sm:block truncate max-w-[200px]">
-              {form.title}
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-brand-ink-3 font-mono">
-              <span className="text-brand-red font-semibold">{pctAnswered}%</span>
-              <span>filled</span>
-            </div>
-            <div className="hidden sm:block w-px h-4 bg-brand-line" />
-            <button onClick={handleExport}
-              className="hidden sm:block text-[12px] text-brand-ink-3 hover:text-brand-ink transition-colors px-2 py-1">
-              Export
-            </button>
-            <button onClick={() => setModalOpen(true)}
-              className="px-4 py-1.5 text-[12px] font-semibold bg-brand-red text-white rounded-full hover:bg-brand-red-dark transition-colors">
-              Submit →
-            </button>
-          </div>
-        </div>
-      </header>
-
       {/* ── Hero ── */}
-      <div className="relative overflow-hidden bg-[#0f172a] no-print" style={{
-        backgroundImage: 'radial-gradient(circle at 20% 50%, rgba(254,48,48,0.07) 0%, transparent 50%), radial-gradient(circle at 80% 20%, rgba(255,255,255,0.03) 0%, transparent 40%)'
-      }}>
-        {/* Subtle grid */}
-        <div className="absolute inset-0 opacity-[0.04]" style={{
-          backgroundImage: 'linear-gradient(rgba(255,255,255,1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)',
-          backgroundSize: '44px 44px'
-        }} />
+      <div className="bg-white no-print">
+        {/* Same container and gutter as the section grid below, so the hero copy
+            and the sections' left column share one left edge. */}
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+        <div className="pt-16 pb-2 max-w-2xl">
+          <Logo size={34} />
 
-        <div className="relative max-w-2xl mx-auto px-6 py-16 sm:py-20 text-center">
-          {/* Logo */}
-          <div className="flex justify-center mb-7">
-            <Logo size={80} white />
-          </div>
-
-          {/* Eyebrow */}
           {form.eyebrow && (
-            <div className="inline-flex items-center gap-2 border border-brand-red/30 bg-brand-red/10 text-brand-red rounded-full px-4 py-1.5 mb-6">
-              <span className="w-1.5 h-1.5 bg-brand-red rounded-full" />
-              <span className="font-mono text-[11px] uppercase tracking-widest">{form.eyebrow}</span>
+            <div className="mt-9 font-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-4">
+              {form.eyebrow}
             </div>
           )}
 
-          {/* Title */}
-          <h1 className="font-serif text-5xl sm:text-6xl text-white font-normal leading-[1.05] mb-5">
+          {/* Accent is carried by weight and tone, not by an italic serif */}
+          <h1 className="mt-3.5 text-[38px] sm:text-[46px] leading-[1.06] tracking-[-0.032em] font-medium text-brand-ink">
             {form.heroAccent ? (
               <>
                 {form.title.split('·')[0].trim().split(form.heroAccent)[0]}
-                <em className="italic text-brand-red">{form.heroAccent}</em>
+                <span className="text-brand-ink-4">{form.heroAccent}</span>
               </>
             ) : form.title}
           </h1>
 
-          {/* Description */}
           {form.description && (
-            <p className="text-slate-400 text-[15px] leading-relaxed max-w-sm mx-auto mb-7">
+            <p className="mt-5 max-w-xl text-[15px] leading-[1.65] text-brand-ink-3">
               {form.description}
             </p>
           )}
 
-          {/* Autosave + stats row */}
-          <div className="flex items-center justify-center gap-4 text-[12px] text-slate-500 font-mono">
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 bg-brand-red rounded-full animate-pulse" />
-              Auto-saving{lastSaved && lastSaved !== 'restored' ? ` · ${lastSaved}` : ''}
-            </div>
-            <span className="text-slate-700">·</span>
-            <span>{form.sections.length} sections · {totalFields} questions</span>
-          </div>
         </div>
-
-        {/* Bottom fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-[#f8fafc] to-transparent" />
+        </div>
       </div>
 
       {/* ── Sections ── */}
-      <main className="bg-[#f8fafc] pb-32">
-        <div className="max-w-2xl mx-auto px-4 sm:px-6 pt-6 space-y-3">
-          {form.sections.map((section, si) => {
-            const answered = section.fields.filter(f => {
-              const v = values[f.id];
-              return Array.isArray(v) ? v.length > 0 : !!v;
-            }).length;
-            const complete = section.fields.length > 0 && answered === section.fields.length;
-            const isOpen = !isAccordion || openSection === section.id;
-            // Fully shut: animation done, so its fields can stop rendering.
-            const isShut = isAccordion && !isOpen && !!shut[section.id];
-            const nextSection = form.sections[si + 1];
+      <main className="bg-white pb-32">
+        <div ref={stepTopRef} className="scroll-mt-24" />
+        <div className="max-w-5xl mx-auto px-5 sm:px-8 pt-10">
+          {(isStepped ? [sections[stepIndex]].filter(Boolean) : sections).map(section => {
+            const questions = inputFields(section);
+            const notes = section.fields.filter(f => f.type === 'note');
+            const position = sections.findIndex(sec => sec.id === section.id);
 
-            return (
-            <div
-              key={section.id}
-              ref={el => { sectionRefs.current[section.id] = el; }}
-              className="bg-white rounded-2xl overflow-hidden print-break-avoid scroll-mt-20"
-              style={{ boxShadow: '0 1px 3px rgba(15,23,42,0.06), 0 4px 16px rgba(15,23,42,0.04)', border: '1px solid #f0f4f8' }}
-            >
-              {/* Section header */}
-              <div
-                className={clsx('px-7 pt-7 pb-5', isAccordion && 'cursor-pointer select-none')}
-                onClick={isAccordion ? () => {
-                  if (openSection === section.id) changeOpen(null);
-                  else goToSection(section.id);
-                } : undefined}
-              >
-                <div className="flex items-center gap-3 mb-1">
-                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-brand-red text-white font-mono text-[10px] font-bold flex-shrink-0">
-                    {complete ? (
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                    ) : section.num}
-                  </span>
-                  {isAccordion && answered > 0 && !complete && (
-                    <span className="text-[10px] font-mono font-semibold text-brand-red bg-red-50 border border-red-100 rounded-full px-2 py-0.5 flex-shrink-0">
-                      {answered}/{section.fields.length}
-                    </span>
-                  )}
-                  <div className="h-px flex-1 bg-brand-line/60" />
-                  <span className="text-[11px] font-mono text-brand-ink-4 uppercase tracking-wider">
-                    {si + 1} of {form.sections.length}
-                  </span>
-                  {isAccordion && (
-                    <svg className={clsx('w-4 h-4 text-brand-ink-3 transition-transform duration-200 flex-shrink-0', isOpen && 'rotate-180')} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-                    </svg>
-                  )}
+            // A copy-only step (a role brief) has nothing to put in the right
+            // column, so it reads as one measured column instead of a lopsided split.
+            const split = questions.length > 0;
+
+            const copy = (
+              <div>
+                <div className="font-mono text-[11px] tracking-[0.14em] text-brand-ink-4 tabular-nums">
+                  {section.num} / {String(sections.length).padStart(2, '0')}
                 </div>
-                <h2 className="font-serif text-[28px] font-normal text-brand-ink mt-3 leading-tight">
+                <h2 className="mt-4 text-[28px] sm:text-[32px] font-medium tracking-[-0.028em] leading-[1.12] text-brand-ink">
                   {section.title}
                 </h2>
-                {section.description && !isAccordion && (
-                  <p className="text-[14px] text-brand-ink-3 mt-1.5 leading-relaxed">
+                {section.description && (
+                  <p className="mt-4 text-[15px] leading-[1.65] text-brand-ink-3">
                     {section.description}
                   </p>
                 )}
-              </div>
-
-              {/* Collapsible body */}
-              <div
-                className="grid transition-[grid-template-rows] duration-300 ease-in-out"
-                style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
-              >
-                <div className="overflow-hidden">
-                  {isShut ? null : <>
-                  {/* Divider */}
-                  <div className="h-px mx-7 bg-brand-line/40" />
-
-                  {/* Fields */}
-                  <div className="px-7 py-7 space-y-8">
-                    {section.description && isAccordion && (
-                      <p className="text-[14px] text-brand-ink-3 leading-relaxed -mb-2">
-                        {section.description}
-                      </p>
-                    )}
-                    {(() => {
-                      const rows: (FormField | [FormField, FormField])[] = [];
-                      let i = 0;
-                      while (i < section.fields.length) {
-                        const cur = section.fields[i], nxt = section.fields[i + 1];
-                        if (cur.halfWidth && nxt?.halfWidth) { rows.push([cur, nxt]); i += 2; }
-                        else { rows.push(cur); i++; }
-                      }
-                      return rows.map((row, ri) =>
-                        Array.isArray(row) ? (
-                          <div key={ri} className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />)}
-                          </div>
-                        ) : (
-                          <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} showToast={showToast} />
-                        )
-                      );
-                    })()}
-
-                    {isAccordion && nextSection && (
-                      <div className="flex justify-end pt-1 -mb-2 border-t border-brand-line/40">
-                        <button
-                          type="button"
-                          onClick={() => goToSection(nextSection.id)}
-                          className="flex items-center gap-1.5 mt-4 text-[13px] font-medium text-brand-ink-3 hover:text-brand-red transition-colors"
-                        >
-                          Continue to {nextSection.title}
-                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                          </svg>
-                        </button>
-                      </div>
-                    )}
+                {notes.length > 0 && (
+                  <div className="mt-7 space-y-6">
+                    {notes.map(f => (
+                      <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />
+                    ))}
                   </div>
-                  </>}
-                </div>
+                )}
               </div>
-            </div>
+            );
+
+            const fields = (
+              <div className="space-y-6">
+                {(() => {
+                  const rows: (FormField | [FormField, FormField])[] = [];
+                  let i = 0;
+                  while (i < questions.length) {
+                    const cur = questions[i], nxt = questions[i + 1];
+                    if (cur.halfWidth && nxt?.halfWidth) { rows.push([cur, nxt]); i += 2; }
+                    else { rows.push(cur); i++; }
+                  }
+                  return rows.map((row, ri) =>
+                    Array.isArray(row) ? (
+                      <div key={ri} className="field-pair">
+                        {row.map(f => <FieldWrapper key={f.id} field={f} values={values} onChange={handleChange} showToast={showToast} />)}
+                      </div>
+                    ) : (
+                      <FieldWrapper key={row.id} field={row} values={values} onChange={handleChange} showToast={showToast} />
+                    )
+                  );
+                })()}
+              </div>
+            );
+
+            return (
+              <section
+                key={section.id}
+                ref={el => { sectionRefs.current[section.id] = el as HTMLDivElement | null; }}
+                className={clsx('print-break-avoid scroll-mt-24', !isStepped && position > 0 && 'mt-20 pt-20 border-t border-brand-line')}
+              >
+                {split ? (
+                  <div className="grid gap-x-16 gap-y-9 lg:grid-cols-[minmax(0,340px)_minmax(0,1fr)]">
+                    {copy}
+                    {fields}
+                  </div>
+                ) : (
+                  <div className="max-w-2xl">{copy}</div>
+                )}
+              </section>
             );
           })}
 
-          {/* End note */}
-          <div className="flex items-start gap-3 px-5 py-4 rounded-2xl bg-amber-50 border border-amber-200/80">
-            <span className="text-amber-400 text-xl leading-none mt-0.5 flex-shrink-0">✦</span>
-            <p className="text-[13px] text-amber-800 leading-relaxed">
-              {form.footerNote ?? "Nothing here is required — we'll cover any blanks together in our discovery call."}
-            </p>
-          </div>
+          {/* ── Step navigation ── */}
+          {isStepped && (
+            <div className="mt-16 pt-6 border-t border-brand-line flex items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => goToStep(stepIndex - 1, sections.length)}
+                disabled={stepIndex === 0}
+                className="group flex items-center gap-2 text-[13px] font-medium text-brand-ink-3 hover:text-brand-ink disabled:opacity-0 disabled:pointer-events-none transition-colors"
+              >
+                <svg className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </button>
+
+              <div className="flex items-center gap-1.5" aria-hidden>
+                {sections.map((sec, i) => (
+                  <button
+                    key={sec.id}
+                    type="button"
+                    onClick={() => goToStep(i, sections.length)}
+                    title={sec.title}
+                    className={clsx(
+                      'h-1 rounded-full transition-all duration-200',
+                      i === stepIndex ? 'w-6 bg-brand-ink' : 'w-1.5 bg-brand-line-2 hover:bg-brand-ink-4'
+                    )}
+                  />
+                ))}
+              </div>
+
+              {stepIndex < sections.length - 1 ? (
+                <button
+                  type="button"
+                  onClick={() => goToStep(stepIndex + 1, sections.length)}
+                  className="group flex items-center gap-2 text-[13px] font-medium text-brand-ink hover:text-brand-red transition-colors"
+                >
+                  Next
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={requestSubmit}
+                  className="group flex items-center gap-2 text-[13px] font-medium text-brand-red hover:text-brand-red-dark transition-colors"
+                >
+                  Review &amp; submit
+                  <svg className="w-4 h-4 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* End note — an email address is turned into a mailto link */}
+          {(() => { const note = form.footerNote ?? "Nothing here is required — we'll cover any blanks together in our discovery call."; return (
+            <div className="mt-14 max-w-2xl">
+              <p className="text-[13px] text-brand-ink-3 leading-relaxed">
+                {note.split(/([\w.+-]+@[\w-]+\.[\w.]+)/g).map((part, i) =>
+                  /^[\w.+-]+@[\w-]+\.[\w.]+$/.test(part) ? (
+                    <a key={i} href={`mailto:${part}`}
+                      className="font-medium text-brand-ink underline decoration-brand-line-2 underline-offset-[3px] hover:decoration-brand-ink transition-colors">
+                      {part}
+                    </a>
+                  ) : part
+                )}
+              </p>
+            </div>
+          ); })()}
         </div>
       </main>
 
       {/* ── Action bar ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 no-print"
-        style={{ background: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(12px)', borderTop: '1px solid #f0f4f8', boxShadow: '0 -4px 24px rgba(15,23,42,0.08)' }}>
+        style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
         <div className="max-w-2xl mx-auto px-6 py-3.5 flex items-center justify-between gap-3">
 
           {/* Left: progress */}
           <div className="hidden sm:flex items-center gap-3">
-            <div className="w-24 h-1.5 bg-brand-line rounded-full overflow-hidden">
-              <div className="h-full bg-brand-red rounded-full transition-all duration-500" style={{ width: `${pctAnswered}%` }} />
+            <div className="w-24 h-[3px] bg-brand-line overflow-hidden">
+              <div className="h-full bg-brand-ink transition-all duration-500" style={{ width: `${pctAnswered}%` }} />
             </div>
             <span className="font-mono text-[11px] text-brand-ink-3">
-              <span className="text-brand-ink font-semibold">{pctAnswered}%</span> filled
+              {blockers.length > 0 ? (
+                <><span className="text-brand-ink font-medium tabular-nums">{blockers.length}</span> required left</>
+              ) : (
+                <><span className="text-brand-ink font-medium tabular-nums">{pctAnswered}%</span> filled</>
+              )}
             </span>
           </div>
 
           {/* Right: actions */}
           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
             <button onClick={handleClear}
-              className="px-4 py-2 text-[12px] font-medium text-brand-ink-3 hover:text-red-600 transition-colors">
+              className="px-3 py-2 text-[12px] font-medium text-brand-ink-4 hover:text-brand-ink transition-colors">
               Clear
             </button>
             <div className="flex items-center gap-2">
               <button onClick={() => window.print()}
-                className="hidden sm:block px-4 py-2 text-[12px] font-medium border border-brand-line rounded-xl hover:border-brand-ink transition-colors">
+                className="hidden sm:block px-3.5 py-2 text-[12px] font-medium text-brand-ink-2 border border-brand-line rounded-md hover:border-brand-ink transition-colors">
                 Print
               </button>
               <button onClick={handleExport}
-                className="px-4 py-2 text-[12px] font-medium border border-brand-line rounded-xl hover:border-brand-ink transition-colors">
+                className="px-3.5 py-2 text-[12px] font-medium text-brand-ink-2 border border-brand-line rounded-md hover:border-brand-ink transition-colors">
                 Export JSON
               </button>
-              <button onClick={() => setModalOpen(true)}
-                className="px-5 py-2.5 text-[13px] font-semibold bg-brand-red text-white rounded-xl hover:bg-brand-red-dark transition-colors flex items-center gap-1.5">
+              <button onClick={requestSubmit}
+                className={clsx(
+                  'px-5 py-2.5 text-[13px] font-medium rounded-md transition-colors flex items-center gap-2',
+                  blockers.length > 0
+                    ? 'bg-brand-line-2 text-white hover:bg-brand-ink-4'
+                    : 'bg-brand-red text-white hover:bg-brand-red-dark'
+                )}
+                title={blockers.length > 0 ? `${blockers.length} required question${blockers.length === 1 ? '' : 's'} still need an answer` : undefined}>
                 Send to Maxxlab
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
