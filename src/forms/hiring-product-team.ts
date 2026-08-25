@@ -42,6 +42,13 @@ const hiringProductTeam: FormConfig = {
               description: 'TypeScript, Node + Hono, raw SQL on Postgres, React 19.',
             },
             {
+              value: 'frontend',
+              label: 'Frontend Developer',
+              badge: 'Engineering',
+              badgeVariant: 'blue',
+              description: 'React 19, Vite, vanilla-extract, design systems, accessibility.',
+            },
+            {
               value: 'qa',
               label: 'QA Tester',
               badge: 'Quality',
@@ -121,6 +128,65 @@ const hiringProductTeam: FormConfig = {
       ],
     },
 
+    // ── Role brief · Frontend ────────────────────────────────────────────────
+    {
+      id: 'brief-frontend',
+      num: '02',
+      title: 'The role · Frontend Developer',
+      description: 'React and design sense. Fully remote.',
+      showIf: { field: ROLE_FIELD, equals: ['frontend'] },
+      fields: [
+        {
+          id: 'fe_brief_intro',
+          type: 'note',
+          body: [
+            "Maxxlab builds custom software and AI-driven products for clients, and the frontends we ship are white-labelled, accessible, and design-system-driven. We're looking for a frontend developer who cares about the details, not just whether a screen renders but whether it feels right, and who wants to be a long-term part of a fast-moving team across multiple client projects rather than a single-contract hire.",
+            "You'll own the frontend. Designs and high-fidelity prototypes come to you decided; you turn them into production React that holds up across tenants, breakpoints, and every state the data can be in.",
+          ],
+        },
+        {
+          id: 'fe_brief_work',
+          type: 'note',
+          label: "What you'll be working on",
+          body: [
+            '- Build product UIs with React 19, Vite, and React Router 7 in a pnpm monorepo',
+            '- Implement design systems with vanilla-extract. Every colour is a CSS custom property, because our products re-theme per tenant at runtime. A hardcoded hex in a component is a broken feature, not a style nit',
+            '- Build every screen in every state: populated, empty, zero-data, loading, and error are all designed states, not afterthoughts',
+            '- Ship WCAG 2.1 AA-compliant interfaces: visible focus everywhere, 44px touch targets, status never carried by colour alone. This is a CI gate on everything we release',
+            '- Build responsive layouts from 375px up',
+            '- Turn high-fidelity prototypes and written specifications into production components faithfully, without silently dropping functionality',
+            '- Consume typed APIs (Zod-validated contracts) and handle loading, error, and retry flows properly',
+            '- Write component and interaction tests with Vitest, in a codebase kept clean with Biome',
+          ],
+        },
+        {
+          id: 'fe_brief_sense',
+          type: 'note',
+          label: 'Design sense matters',
+          body: [
+            "We're not looking for someone who only implements what they're handed. A prototype never covers everything. You'll make dozens of small calls a week that nobody mocked up, and we want those calls to be good ones.",
+            '- Recognise when something feels cluttered, unbalanced, or inconsistent, and know what to change',
+            '- Get spacing, hierarchy, and typography right without being told the exact values',
+            "- Fill in the states and edge cases a design didn't cover, in keeping with the rest of the system",
+            '- Know when to follow the existing design system and when a pattern genuinely needs to evolve',
+            "- Push back when a design won't survive real data, a narrow screen, or a keyboard, before it's built rather than after",
+            '- Defend a decision with reasoning rather than "it looks better"',
+            "On some projects there'll be a designer and a Figma file. On others there'll be a rough prototype, a written spec, and you. Both need to end up looking like we meant it.",
+          ],
+        },
+        {
+          id: 'fe_brief_how',
+          type: 'note',
+          label: 'How we work',
+          variant: 'callout',
+          body: [
+            "You'll have direct access to the founders and work closely with a technical lead who reviews your code and helps you grow, not just approves PRs. Our process is a short technical assessment, then a trial period, then paid probation. Strong performers move into a permanent, long-term role from there. Because our client projects vary, you'll get exposure to new products and problems over time rather than being locked into one codebase.",
+            'Location: fully remote, with working-hours overlap on Canadian business hours (~9-5 ET).',
+          ],
+        },
+      ],
+    },
+
     // ── Role brief · QA ──────────────────────────────────────────────────────
     {
       id: 'brief-qa',
@@ -194,6 +260,7 @@ const hiringProductTeam: FormConfig = {
             '- Prepare professional developer handoffs with component naming, measurements, spacing, states, annotations, assets, and interaction notes',
             '- Understand Storybook and component-driven development, including how Figma components and variants translate into coded components',
             '- Review implemented interfaces and perform design QA against the original Figma designs',
+            "- You'll hand off directly to full-stack developers, not to a frontend specialist. Your handoff has to be complete enough that someone whose main job is the backend can build your screen correctly without asking you three questions a day",
             '- Keep Figma files professionally organized and structured for long-term team usage',
           ],
         },
@@ -356,6 +423,98 @@ const hiringProductTeam: FormConfig = {
       ],
     },
 
+    // ── Skills · Frontend ────────────────────────────────────────────────────
+    {
+      id: 'skills-frontend',
+      num: '05',
+      title: 'Your frontend experience',
+      description: "What you've built, and how much of the detail you own.",
+      showIf: { field: ROLE_FIELD, equals: ['frontend'] },
+      fields: [
+        {
+          id: 'fe_core_skills',
+          type: 'checkboxgroup',
+          layout: 'list',
+          label: 'Core skills: select what you have real production experience with',
+          hint: 'Only tick what you could own today without hand-holding.',
+          options: [
+            { value: 'react_prod', label: 'React in production' },
+            { value: 'typescript', label: 'Strong TypeScript' },
+            { value: 'css', label: 'CSS fundamentals', description: 'Layout, typography, responsive behaviour, beyond utility frameworks.' },
+            { value: 'faithful', label: 'Implementing a design faithfully from a prototype or spec' },
+            { value: 'states', label: 'Building complete states', description: 'Loading, empty, error, disabled, focus, validation.' },
+            { value: 'figma_specs', label: 'Reading a Figma file and pulling specs from it directly', description: 'Components, variants, variables, measurements.' },
+            { value: 'tested', label: 'Writing tested, reviewed code' },
+          ],
+        },
+        {
+          id: 'fe_bonus_skills',
+          type: 'checkboxgroup',
+          layout: 'list',
+          label: 'Bonus skills: any of these make you stand out',
+          options: [
+            { value: 'css_in_js', label: 'vanilla-extract, CSS Modules, or Stitches', description: "Note: we don't use Tailwind." },
+            { value: 'tokens', label: 'Design tokens, theming, or white-label / multi-tenant products' },
+            { value: 'a11y', label: 'Accessibility work', description: 'axe, Lighthouse, keyboard and screen reader testing.' },
+            { value: 'vite_router', label: 'Vite and React Router 7' },
+            { value: 'storybook', label: 'Storybook or component-driven development' },
+            { value: 'tooling', label: 'Vitest, pnpm monorepos, or Biome' },
+            { value: 'dashboards', label: 'Dashboards, complex workflows, or data-heavy applications' },
+            { value: 'dataviz', label: 'Data visualization' },
+            { value: 'animation', label: 'Animation and interaction detail' },
+          ],
+        },
+        {
+          id: 'fe_strongest',
+          type: 'textarea',
+          label: 'Which responsibilities are you strongest in, and what are you most excited to work on next?',
+          hint: 'This is the paragraph we read most closely. Be specific about real work you have shipped.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'fe_handed_design',
+          type: 'textarea',
+          label: 'Tell us about a UI you built where the design was handed to you',
+          hint: "How close was the result, and where did you have to make calls the design didn't cover? Those calls are the part we're interested in.",
+          rows: 5,
+        },
+        {
+          id: 'fe_theming',
+          type: 'textarea',
+          label: 'How do you structure styles for a product that re-themes per client?',
+          hint: "Tokens, custom properties, whatever you've actually used, and what breaks when someone hardcodes a value.",
+          rows: 4,
+        },
+        {
+          id: 'fe_taste',
+          type: 'textarea',
+          label: 'Show us a piece of interface you think is well made, and one you think is weak',
+          hint: "Anything public: an app, a site, a single screen. Say why in each case. We're testing your eye, not your diplomacy.",
+          rows: 5,
+        },
+        {
+          id: 'fe_github_url',
+          type: 'url',
+          label: 'GitHub profile',
+          halfWidth: true,
+        },
+        {
+          id: 'fe_live_url',
+          type: 'url',
+          label: 'A live UI we can click through',
+          hint: "The best representation of your frontend work. Make sure it's publicly accessible.",
+          halfWidth: true,
+        },
+        {
+          id: 'fe_repo_highlight',
+          type: 'url',
+          label: 'The one repo we should look at first',
+          hint: 'Optional. If the code tells a better story than the live version.',
+        },
+      ],
+    },
+
     // ── Skills · QA ──────────────────────────────────────────────────────────
     {
       id: 'skills-qa',
@@ -452,6 +611,7 @@ const hiringProductTeam: FormConfig = {
             { value: 'states', label: 'Designing complete states and edge cases', description: 'Loading, empty, error, disabled, focus, validation.' },
             { value: 'responsive', label: 'Responsive web and mobile design across breakpoints' },
             { value: 'handoff', label: 'Professional developer handoffs', description: 'Naming, measurements, annotations, assets, interaction notes.' },
+            { value: 'tokens', label: 'Design tokens and variables', description: 'Figma variables and styles structured so they map cleanly onto CSS custom properties.' },
             { value: 'frontend_fundamentals', label: 'Frontend fundamentals', description: 'HTML, CSS, responsive behaviour, component-based UI.' },
           ],
         },
@@ -465,7 +625,6 @@ const hiringProductTeam: FormConfig = {
             { value: 'figma_to_code', label: 'Understanding how Figma components map to coded components' },
             { value: 'react_teams', label: 'Working alongside React / frontend teams' },
             { value: 'wcag', label: 'Accessibility and WCAG principles' },
-            { value: 'tokens', label: 'Design tokens and variables' },
             { value: 'white_label', label: 'White-label, multi-theme, or SaaS products' },
             { value: 'dashboards', label: 'Dashboards, complex workflows, or data-heavy applications' },
             { value: 'framer', label: 'Framer or other modern prototyping tools' },
@@ -489,6 +648,13 @@ const hiringProductTeam: FormConfig = {
           hint: 'How you structure a Figma file, name components, and what you give engineering so nothing gets lost.',
           rows: 4,
           required: true,
+        },
+        {
+          id: 'ux_nonspecialist_handoff',
+          type: 'textarea',
+          label: "Have you handed designs to developers who weren't frontend specialists?",
+          hint: 'What went wrong the first time, and what you changed about your handoff afterwards.',
+          rows: 4,
         },
         {
           id: 'ux_storybook',
