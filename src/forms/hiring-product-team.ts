@@ -1,7 +1,7 @@
 import type { FormConfig } from '@/lib/types';
 
-// ── Maxxlab hiring — Full-Stack / QA / UI-UX ──────────────────────────────────
-// One form, three tracks. Section 01 asks which role you're applying for and
+// ── Maxxlab hiring — Full-Stack / Frontend / QA / UI-UX ──────────────────────
+// One form, four tracks. Section 01 asks which role you're applying for and
 // every role-specific section below is gated on that answer via `showIf`, so an
 // applicant only ever sees (and only ever gets emailed back) their own track.
 
@@ -10,7 +10,7 @@ const ROLE_FIELD = 'role';
 const hiringProductTeam: FormConfig = {
   id: 'hiring-product-team',
   slug: 'hiring-product-team',
-  title: 'Maxxlab Team Application · Full-Stack · QA · UI/UX',
+  title: 'Maxxlab Team Application · Full-Stack · Frontend · QA · UI/UX',
   heroAccent: 'Application',
   eyebrow: 'Maxxlab · Hiring · Remote · Canadian hours overlap',
   description:
@@ -25,7 +25,7 @@ const hiringProductTeam: FormConfig = {
       num: '01',
       title: 'Which role are you applying for?',
       description:
-        'Pick one and the rest of the form changes to match. All three are fully remote.',
+        'Pick one and the rest of the form changes to match. All four are fully remote.',
       fields: [
         {
           id: ROLE_FIELD,
