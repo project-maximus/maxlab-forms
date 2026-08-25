@@ -126,7 +126,7 @@ const hiringAiFullstack: FormConfig = {
       id: 'logistics',
       num: '05',
       title: 'Availability & working style',
-      description: "How we work: direct founder access, a paid trial period first, then a long-term seat if it's a fit.",
+      description: "How we work: direct founder access, and a long-term seat if it's a fit.",
       fields: [
         { id: 'start_date', type: 'date', label: 'Earliest start date', halfWidth: true },
         { id: 'compensation_expectation', type: 'text', label: 'Compensation expectation', hint: 'Monthly or hourly rate, whatever is easiest to compare.', halfWidth: true },

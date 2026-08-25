@@ -442,6 +442,8 @@ export default function FormClient({ form }: { form: FormConfig }) {
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
   const [step, setStep] = useState(0);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /** false until the applicant actually edits a field (a draft restore doesn't count) */
+  const userPicked = useRef(false);
   const stepTopRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
@@ -490,6 +492,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
   }, [form, values, isStepped, goToStep]);
 
   const handleChange = useCallback((id: string, value: string | string[] | FileValue[]) => {
+    userPicked.current = true;
     setValues(prev => {
       const next = { ...prev, [id]: value };
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
@@ -508,6 +511,10 @@ export default function FormClient({ form }: { form: FormConfig }) {
   useEffect(() => {
     if (!branchField || lastBranch.current === branchValue) return;
     lastBranch.current = branchValue;
+    // Restoring a saved draft also populates this field, but that isn't the
+    // applicant choosing anything — without this guard a returning visitor
+    // gets dropped into the role brief instead of the opening question.
+    if (!userPicked.current) return;
     if (!branchValue) return;
     const vis = visibleSections(form, values);
     const at = vis.findIndex(sec => sec.fields.some(f => f.id === branchField));
@@ -759,7 +766,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
           )}
 
           {/* End note — an email address is turned into a mailto link */}
-          {(() => { const note = form.footerNote ?? "Nothing here is required — we'll cover any blanks together in our discovery call."; return (
+          {(() => { const note = form.footerNote ?? "Nothing here is required. We'll cover any blanks together in our discovery call."; return (
             <div className="mt-14 max-w-2xl">
               <p className="text-[13px] text-brand-ink-3 leading-relaxed">
                 {note.split(/([\w.+-]+@[\w-]+\.[\w.]+)/g).map((part, i) =>
