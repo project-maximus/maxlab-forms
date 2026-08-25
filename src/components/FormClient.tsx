@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
-import { visibleSections, inputFields, progressFor, missingRequired } from '@/lib/form-logic';
+import { visibleSections, inputFields, progressFor, missingRequired, stripClosedAnswers } from '@/lib/form-logic';
 import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
 import SubmitModal from './SubmitModal';
@@ -138,7 +138,8 @@ function RadioField({ field, values, onChange }: FP) {
           <button
             key={opt.value}
             type="button"
-            onClick={() => onChange(field.id, opt.value)}
+            disabled={opt.disabled}
+            onClick={() => { if (!opt.disabled) onChange(field.id, opt.value); }}
             className={clsx(
               'px-4 py-2 rounded-md text-[13px] font-medium border transition-colors duration-150 select-none',
               selected === opt.value
@@ -168,7 +169,8 @@ function RadioField({ field, values, onChange }: FP) {
             )}
           >
             <input type="radio" name={field.id} value={opt.value} checked={selected === opt.value}
-              onChange={() => onChange(field.id, opt.value)} className="sr-only" />
+              disabled={opt.disabled}
+              onChange={() => { if (!opt.disabled) onChange(field.id, opt.value); }} className="sr-only" />
             <RadioDot active={selected === opt.value} />
             <div className="flex-1 min-w-0">
               {opt.badge && <div className="mb-2"><Badge text={opt.badge} variant={opt.badgeVariant} /></div>}
@@ -184,7 +186,37 @@ function RadioField({ field, values, onChange }: FP) {
   // List layout (default)
   return (
     <div className="flex flex-col gap-2 pt-1">
-      {field.options?.map(opt => (
+      {field.options?.map(opt => {
+        // A closed option renders as plain markup with no input at all, so it
+        // cannot be clicked, tabbed to, or submitted.
+        if (opt.disabled) {
+          return (
+            <div
+              key={opt.value}
+              aria-disabled="true"
+              className="flex items-start gap-3 px-4 py-3 border border-brand-line rounded-md bg-brand-bg cursor-not-allowed select-none"
+            >
+              <span className="flex-shrink-0 w-[16px] h-[16px] rounded-full border border-brand-line-2 bg-white mt-[3px]" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center flex-wrap gap-x-2.5 gap-y-1">
+                  <span className="text-[14px] font-medium text-brand-ink-4 leading-snug line-through decoration-brand-line-2">
+                    {opt.label}
+                  </span>
+                  {opt.badge && <Badge text={opt.badge} variant={opt.badgeVariant} />}
+                </div>
+                {opt.disabledNote && (
+                  <div className="font-mono text-[11px] tracking-[0.06em] text-brand-ink-3 mt-1.5 tabular-nums">
+                    {opt.disabledNote}
+                  </div>
+                )}
+                {opt.description && (
+                  <div className="text-[13px] text-brand-ink-4 mt-1 leading-relaxed">{opt.description}</div>
+                )}
+              </div>
+            </div>
+          );
+        }
+        return (
         <label
           key={opt.value}
           className={clsx(
@@ -205,7 +237,8 @@ function RadioField({ field, values, onChange }: FP) {
             {opt.description && <div className="text-[13px] text-brand-ink-3 mt-1 leading-relaxed">{opt.description}</div>}
           </div>
         </label>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -547,7 +580,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(STORAGE_KEY);
-      if (raw) { setValues(prev => ({ ...prev, ...JSON.parse(raw) })); }
+      if (raw) { setValues(prev => ({ ...prev, ...stripClosedAnswers(form, JSON.parse(raw)) })); }
     } catch { /* ignore */ }
   }, [STORAGE_KEY]);
 

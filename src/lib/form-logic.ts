@@ -90,6 +90,46 @@ export function answerableSections(form: FormConfig, data: AnswerMap): FormSecti
     .map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0') }));
 }
 
+/**
+ * Drop answers pointing at an option that has since been closed. Drafts live in
+ * localStorage for weeks, so someone who picked a role before it filled up would
+ * otherwise come back and still be walked through that role's questions.
+ */
+export function stripClosedAnswers<T extends AnswerMap>(form: FormConfig, data: T): T {
+  const out: AnswerMap = { ...data };
+  form.sections.forEach(section => section.fields.forEach(field => {
+    const closed = new Set((field.options ?? []).filter(o => o.disabled).map(o => o.value));
+    if (closed.size === 0) return;
+    const value = out[field.id];
+    if (typeof value === 'string') {
+      if (closed.has(value)) delete out[field.id];
+    } else if (Array.isArray(value)) {
+      const kept = value.filter(v => typeof v !== 'string' || !closed.has(v));
+      if (kept.length !== value.length) out[field.id] = kept as string[];
+    }
+  }));
+  return out as T;
+}
+
+/**
+ * Answers that reference an option which has been closed. The form never lets
+ * you pick one, but the submit endpoint is a plain HTTP POST, so the server
+ * checks this too rather than trusting the client.
+ */
+export function closedAnswers(form: FormConfig, data: AnswerMap): { field: string; value: string }[] {
+  const hits: { field: string; value: string }[] = [];
+  form.sections.forEach(section => section.fields.forEach(field => {
+    const closed = new Set((field.options ?? []).filter(o => o.disabled).map(o => o.value));
+    if (closed.size === 0) return;
+    const value = data[field.id];
+    const picked = typeof value === 'string' ? [value] : Array.isArray(value) ? value : [];
+    picked.forEach(v => {
+      if (typeof v === 'string' && closed.has(v)) hits.push({ field: field.id, value: v });
+    });
+  }));
+  return hits;
+}
+
 /** True once any branching rule exists — lets callers skip the extra work. */
 export function isBranching(form: FormConfig): boolean {
   return form.sections.some(s => s.showIf);

@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { saveSubmission } from '@/lib/storage';
 import { sendSubmissionEmails } from '@/lib/email';
 import { getFormBySlug } from '@/forms';
+import { closedAnswers } from '@/lib/form-logic';
 import type { FormSubmission } from '@/lib/types';
 
 // Cross-site forms (e.g. pricing.maxxlab.tech) post here directly, so this
@@ -52,6 +53,17 @@ export async function POST(req: NextRequest) {
     const form = getFormBySlug(formSlug);
     if (!form) {
       return NextResponse.json({ error: `Form "${formSlug}" not found.` }, { status: 404, headers });
+    }
+
+    // A closed option is unselectable in the UI, but this endpoint takes a plain
+    // POST — reject it here too so the role can't be applied for out of band.
+    const closed = closedAnswers(form, data ?? {});
+    if (closed.length > 0) {
+      console.warn('[submit] Rejected closed option:', closed);
+      return NextResponse.json(
+        { error: 'That role is no longer accepting applications.' },
+        { status: 409, headers },
+      );
     }
 
     const submission: FormSubmission = {

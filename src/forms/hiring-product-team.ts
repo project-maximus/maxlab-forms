@@ -37,9 +37,11 @@ const hiringProductTeam: FormConfig = {
             {
               value: 'fullstack',
               label: 'Full-Stack Developer',
-              badge: 'Engineering',
-              badgeVariant: 'blue',
+              badge: 'Closed',
+              badgeVariant: 'red',
               description: 'TypeScript, Node + Hono, raw SQL on Postgres, React 19.',
+              disabled: true,
+              disabledNote: '114 / 114 applications received. Applications are closed.',
             },
             {
               value: 'frontend',

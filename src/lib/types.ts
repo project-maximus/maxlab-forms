@@ -32,6 +32,10 @@ export interface FieldOption {
    * a text chip instead; that's how "N/A" sits on the end of a face row.
    */
   face?: string;
+  /** Renders the option unselectable, e.g. a role that is no longer hiring */
+  disabled?: boolean;
+  /** Shown in place of the option's normal affordance when disabled */
+  disabledNote?: string;
 }
 
 /**
