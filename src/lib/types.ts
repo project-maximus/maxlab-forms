@@ -14,9 +14,11 @@ export type FieldType =
   | 'checkboxgroup'
   | 'select'
   | 'slider'
+  /** Row of emoji faces standing in for a 1-5 scale (feedback forms) */
+  | 'emojiscale'
   | 'file';
 
-export type RadioLayout = 'list' | 'pills' | 'grid';
+export type RadioLayout = 'list' | 'pills' | 'grid' | 'compact';
 
 export interface FieldOption {
   value: string;
@@ -24,6 +26,12 @@ export interface FieldOption {
   description?: string;
   badge?: string;
   badgeVariant?: 'red' | 'green' | 'amber' | 'blue';
+  /**
+   * emojiscale: name of the face drawn for this point on the scale — see the
+   * `FaceName` union in components/FaceIcon. An option without one renders as
+   * a text chip instead; that's how "N/A" sits on the end of a face row.
+   */
+  face?: string;
 }
 
 /**
@@ -57,6 +65,8 @@ export interface FormField {
   defaultValue?: string;
   /** checkboxgroup: cap how many options can be selected */
   maxSelect?: number;
+  /** emojiscale: captions printed under the two ends of the row */
+  scaleLabels?: { low: string; high: string };
   /** slider: two end-point labels, e.g. [{value:'0',label:'Formal'},{value:'100',label:'Casual'}] */
   /** file: accepted file types, e.g. "image/*,.svg,.pdf" */
   accept?: string;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
 import { visibleSections, inputFields, progressFor, missingRequired } from '@/lib/form-logic';
+import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
 import SubmitModal from './SubmitModal';
 import Toast from './Toast';
@@ -268,6 +269,97 @@ function SliderField({ field, values, onChange }: FP) {
   );
 }
 
+// ── Emoji scale (1-5 satisfaction rating) ─────────────────────────────────────
+// Feedback questions score much better as faces than as five bare radio dots.
+// Unselected faces sit back in a lighter ink so the picked one reads instantly,
+// and an option with no `face` (i.e. "N/A") falls back to a text chip on the
+// end of the row. `layout: 'compact'` is the tighter variant used when a whole
+// group of these stacks up as a rating matrix.
+function EmojiScaleField({ field, values, onChange }: FP) {
+  const selected = str(values, field.id);
+  const options = field.options ?? [];
+  const compact = field.layout === 'compact';
+  const active = options.find(o => o.value === selected);
+
+  const size = compact ? 'w-[42px] h-[42px]' : 'w-[54px] h-[54px]';
+  const glyph = compact ? 'w-[24px] h-[24px]' : 'w-[30px] h-[30px]';
+
+  return (
+    <div className="inline-flex flex-col items-stretch max-w-full">
+      <div
+        role="radiogroup"
+        aria-label={field.label ?? field.id}
+        className={clsx('flex flex-wrap items-start', compact ? 'gap-1.5' : 'gap-2 sm:gap-2.5', 'pt-1')}
+      >
+        {options.map(opt => {
+          const on = selected === opt.value;
+          // Clicking the current answer clears it — these questions are
+          // optional and a radio with no keyboard escape is a trap otherwise.
+          const pick = () => onChange(field.id, on ? '' : opt.value);
+
+          if (!isFaceName(opt.face)) {
+            return (
+              <button
+                key={opt.value} type="button" role="radio" aria-checked={on} onClick={pick}
+                className={clsx(
+                  'flex items-center justify-center px-3 rounded-full border text-[12px] font-medium transition-all duration-150 select-none',
+                  compact ? 'h-[42px]' : 'h-[54px]',
+                  on
+                    ? 'border-brand-ink bg-brand-ink text-white'
+                    : 'border-brand-line bg-white text-brand-ink-4 hover:border-brand-ink-4 hover:text-brand-ink-2'
+                )}
+              >
+                {opt.label}
+              </button>
+            );
+          }
+
+          return (
+            <button
+              key={opt.value} type="button" role="radio" aria-checked={on} onClick={pick}
+              title={opt.label}
+              className="group flex flex-col items-center gap-1.5 focus:outline-none"
+            >
+              <span
+                className={clsx(
+                  'flex items-center justify-center rounded-full border select-none',
+                  'transition-all duration-150 will-change-transform',
+                  size,
+                  on
+                    ? 'border-brand-ink bg-white text-brand-ink -translate-y-0.5 shadow-[0_0_0_3px_rgba(15,23,42,0.07)]'
+                    : 'border-brand-line bg-white text-brand-ink-4 hover:border-brand-ink-4 hover:text-brand-ink-2 hover:-translate-y-0.5'
+                )}
+              >
+                <FaceIcon name={opt.face} className={glyph} />
+              </span>
+              {!compact && (
+                <span className={clsx(
+                  'font-mono text-[10px] leading-none tabular-nums transition-colors',
+                  on ? 'text-brand-ink' : 'text-brand-ink-4'
+                )}>
+                  {opt.value}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {field.scaleLabels && !compact && (
+        <div className="mt-2.5 flex items-center justify-between gap-6">
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-ink-4">{field.scaleLabels.low}</span>
+          <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-brand-ink-4">{field.scaleLabels.high}</span>
+        </div>
+      )}
+
+      {/* Reserve the caption line so picking an answer never nudges the page. */}
+      <div className={clsx('text-[13px] leading-none', compact ? 'mt-2 h-[13px]' : 'mt-3 h-[13px]')}>
+        {active && <span className="text-brand-ink font-medium">{active.label}</span>}
+      </div>
+    </div>
+  );
+}
+
 // ── File upload field ───────────────────────────────────────────────────────────
 const MAX_UPLOAD_BYTES = 4.5 * 1024 * 1024; // serverless body limit headroom
 
@@ -384,6 +476,7 @@ function FieldRenderer(props: FP) {
     case 'radio':         return <RadioField {...props} />;
     case 'checkboxgroup': return <CheckboxGroupField {...props} />;
     case 'slider':        return <SliderField {...props} />;
+    case 'emojiscale':    return <EmojiScaleField {...props} />;
     case 'file':          return <FileField {...props} />;
     default:              return <TextField {...props} />;
   }
@@ -839,8 +932,8 @@ export default function FormClient({ form }: { form: FormConfig }) {
         <SubmitModal
           onClose={() => setModalOpen(false)}
           onSubmit={handleSubmit}
-          defaultName={str(values, 'lead_name') || str(values, 'contact_name')}
-          defaultEmail={str(values, 'lead_email') || str(values, 'contact_email')}
+          defaultName={str(values, 'full_name') || str(values, 'lead_name') || str(values, 'contact_name')}
+          defaultEmail={str(values, 'email') || str(values, 'lead_email') || str(values, 'contact_email')}
           loading={submitting}
         />
       )}

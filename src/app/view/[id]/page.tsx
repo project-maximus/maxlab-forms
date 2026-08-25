@@ -4,7 +4,7 @@ import { getFormBySlug } from '@/forms';
 import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
 import { directionByName, buildAlignmentStatement } from '@/lib/npsi-selector-data';
-import { answerableSections } from '@/lib/form-logic';
+import { answerableSections, displayValue } from '@/lib/form-logic';
 import type { Metadata } from 'next';
 import type { FormSubmission, FormField, FileValue } from '@/lib/types';
 
@@ -33,7 +33,7 @@ function isFileValueArray(value: unknown): value is FileValue[] {
   return Array.isArray(value) && value.length > 0 && typeof value[0] === 'object' && value[0] !== null && 'url' in (value[0] as object);
 }
 
-function AnswerValue({ value }: { value: string | string[] | FileValue[] | undefined }) {
+function AnswerValue({ field, value }: { field: FormField; value: string | string[] | FileValue[] | undefined }) {
   if (!value || (Array.isArray(value) && value.length === 0)) {
     return <span className="text-brand-ink-4 italic text-sm">Not specified</span>;
   }
@@ -49,8 +49,8 @@ function AnswerValue({ value }: { value: string | string[] | FileValue[] | undef
       </div>
     );
   }
-  const display = Array.isArray(value) ? value.join(', ') : value;
-  return <span className="text-sm text-brand-ink break-words whitespace-pre-wrap">{display}</span>;
+  // Stored answers are option values — read them back as the wording chosen.
+  return <span className="text-sm text-brand-ink break-words whitespace-pre-wrap">{displayValue(field, value)}</span>;
 }
 
 function NPSIAlignmentSummary({ submission }: { submission: FormSubmission }) {
@@ -98,7 +98,7 @@ function SectionBlock({
               {field.label ?? field.id}
             </dt>
             <dd className="flex-1 min-w-0">
-              <AnswerValue value={data[field.id]} />
+              <AnswerValue field={field} value={data[field.id]} />
             </dd>
           </div>
         ))}

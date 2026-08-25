@@ -1,7 +1,7 @@
 import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
 import { buildAlignmentStatement } from './npsi-selector-data';
-import { answerableSections } from './form-logic';
+import { answerableSections, displayValue } from './form-logic';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL        ?? 'admin@maxxlab.tech';
@@ -131,11 +131,6 @@ function noteBlock(text: string): string {
 
 function buildSections(submission: FormSubmission): string {
   const d = submission.data;
-  const v = (k: string) => {
-    const val = d[k];
-    if (!val) return '';
-    return Array.isArray(val) ? val.join(', ') : val;
-  };
   const form = getFormBySlug(submission.formSlug);
   if (!form) {
     return emailSection('Submission Data',
@@ -173,7 +168,8 @@ function buildSections(submission: FormSubmission): string {
       fields.map(f => {
         const val = d[f.id];
         if (f.type === 'file') return fileRow(f.label ?? f.id, isFileValueArray(val) ? val : []);
-        return row(f.label ?? f.id, v(f.id));
+        // Answers are stored as option values — print the wording instead.
+        return row(f.label ?? f.id, displayValue(f, val));
       }).join('')
     );
 

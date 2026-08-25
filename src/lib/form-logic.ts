@@ -18,6 +18,39 @@ export function inputFields(section: FormSection): FormField[] {
   return section.fields.filter(isInputField);
 }
 
+/**
+ * Stored answers are option *values* ("fullstack", "4"), which is what the form
+ * needs but not what a human reading the notification email wants. Map them
+ * back through the config so both the email and the submission viewer report
+ * the wording the person actually clicked on.
+ *
+ * A slider stores a number between its two endpoint options, so its raw value
+ * is already the answer — mapping it would misreport a 0 as "Formal".
+ */
+export function optionLabel(field: FormField, raw: string): string {
+  if (field.type === 'slider') return raw;
+  const opt = field.options?.find(o => o.value === raw);
+  if (!opt) return raw;
+  // An emoji scale's number is the score, so it stays alongside the wording.
+  if (field.type === 'emojiscale' && /^\d+$/.test(opt.value) && opt.label !== opt.value) {
+    return `${opt.value} · ${opt.label}`;
+  }
+  return opt.label;
+}
+
+/** One printable string for a stored answer. Files are handled by the caller. */
+export function displayValue(field: FormField, value: AnswerMap[string]): string {
+  if (value == null) return '';
+  if (typeof value === 'string') return optionLabel(field, value);
+  if (Array.isArray(value)) {
+    return value
+      .filter((v): v is string => typeof v === 'string')
+      .map(v => optionLabel(field, v))
+      .join(', ');
+  }
+  return '';
+}
+
 /** Does this section's `showIf` rule match the given answers? */
 export function sectionMatches(section: FormSection, data: AnswerMap): boolean {
   const rule = section.showIf;
