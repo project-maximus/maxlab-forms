@@ -450,7 +450,7 @@ function NoteField({ field }: FP) {
     <div className={clsx(
       'text-[14px] leading-relaxed',
       callout
-        ? 'rounded-md border-l-2 border-brand-ink bg-brand-bg px-5 py-4 text-brand-ink-2'
+        ? 'rounded-md bg-brand-bg px-5 py-4 text-brand-ink-2'
         : 'text-brand-ink-2'
     )}>
       {blocks.map((block, i) =>
