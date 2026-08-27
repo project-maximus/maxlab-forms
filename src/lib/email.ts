@@ -1,7 +1,9 @@
 import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
 import { buildAlignmentStatement } from './npsi-selector-data';
+import { buildReadout, LAYERS } from './goat-discovery-scoring';
 import { answerableSections, displayValue } from './form-logic';
+import { noteKey } from './types';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL        ?? 'admin@maxxlab.tech';
@@ -79,10 +81,13 @@ function esc(v: unknown): string {
 const nl2br = (v: string) => esc(v).replace(/\r?\n/g, '<br/>');
 
 // ── Section row helper ────────────────────────────────────────────────────────
-function row(label: string, value: string) {
-  const display = value?.trim()
+function row(label: string, value: string, note?: string) {
+  const answer = value?.trim()
     ? `<span style="color:#0f172a;">${nl2br(value)}</span>`
     : `<span style="color:#94a3b8;font-style:italic;">Not specified</span>`;
+  const display = note
+    ? `${answer}<div style="margin-top:5px;padding-left:9px;border-left:2px solid #e2e8f0;color:#475569;font-size:12.5px;">${nl2br(note)}</div>`
+    : answer;
   return `
   <tr>
     <td style="padding:9px 20px;font-size:12px;color:#64748b;font-weight:500;white-space:nowrap;width:185px;vertical-align:top;border-bottom:1px solid #f8fafc;">${esc(label)}</td>
@@ -141,6 +146,8 @@ function buildSections(submission: FormSubmission): string {
   }
 
   const answered = (id: string) => {
+    const note = d[noteKey(id)];
+    if (typeof note === 'string' && note.trim() !== '') return true;
     const val = d[id];
     if (Array.isArray(val)) return val.length > 0;
     return typeof val === 'string' && val.trim() !== '';
@@ -169,7 +176,11 @@ function buildSections(submission: FormSubmission): string {
         const val = d[f.id];
         if (f.type === 'file') return fileRow(f.label ?? f.id, isFileValueArray(val) ? val : []);
         // Answers are stored as option values — print the wording instead.
-        return row(f.label ?? f.id, displayValue(f, val));
+        // A field's free-text note rides under its answer rather than as a row
+        // of its own, so the interviewee's wording sits next to what was picked.
+        const note = d[noteKey(f.id)];
+        const noteText = typeof note === 'string' ? note.trim() : '';
+        return row(f.label ?? f.id, displayValue(f, val), noteText);
       }).join('')
     );
 
@@ -207,6 +218,41 @@ function alignmentBlock(submission: FormSubmission): string {
     <div style="margin:0 24px 16px;background:#0f172a;border-radius:12px;padding:18px 20px;">
       <div style="font-size:10px;font-weight:700;color:#fe3030;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;">Alignment Statement</div>
       <p style="margin:0;font-size:13px;line-height:1.6;color:#e2e8f0;">${esc(statement)}</p>
+    </div>`;
+}
+
+// ── G.O.A.T discovery read-out (admin email only) ────────────────────────────
+// The fit score, blockers, scope flags and recommended layers, computed from the
+// answers so the deal record is complete without re-reading the whole intake.
+function discoveryReadout(submission: FormSubmission): string {
+  if (submission.formSlug !== 'goat-discovery') return '';
+  const r = buildReadout(submission.data);
+  const tone = { go: '#16a34a', maybe: '#d97706', no: '#fe3030' }[r.verdict.tone];
+
+  const list = (title: string, items: string[], colour: string) => items.length === 0 ? '' : `
+    <div style="margin-top:14px;">
+      <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">${esc(title)}</div>
+      ${items.map(i => `<div style="font-size:12.5px;line-height:1.55;color:#e2e8f0;padding:7px 11px;margin-bottom:5px;background:rgba(255,255,255,0.05);border-left:2px solid ${colour};border-radius:0 6px 6px 0;">${esc(i)}</div>`).join('')}
+    </div>`;
+
+  return `
+    <div style="margin:0 24px 16px;background:#0f172a;border-radius:12px;padding:20px;">
+      <div style="font-size:10px;font-weight:700;color:#fe3030;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">Discovery read-out</div>
+      <table cellpadding="0" cellspacing="0" border="0"><tr>
+        <td style="font-size:40px;font-weight:800;color:#ffffff;line-height:1;padding-right:14px;">${r.score}<span style="font-size:15px;color:#64748b;">/100</span></td>
+        <td style="font-size:13px;font-weight:700;color:${tone};">${esc(r.verdict.word)}</td>
+      </tr></table>
+      ${list('Deal blockers', r.blockers.length ? r.blockers : ['None flagged from these answers'], r.blockers.length ? '#fe3030' : '#16a34a')}
+      ${list('Scope flags, extra work to price in', r.scopeFlags, '#d97706')}
+      <div style="margin-top:14px;font-size:12.5px;color:#94a3b8;line-height:1.6;">
+        Suggested phase one: <strong style="color:#e2e8f0;">${esc(r.phaseOne)}</strong>
+      </div>
+      <div style="margin-top:10px;">
+        ${Object.keys(LAYERS).map(k => {
+          const on = r.layers.includes(k);
+          return `<span style="display:inline-block;font-size:10.5px;font-weight:700;padding:4px 8px;margin:0 4px 4px 0;border-radius:5px;${on ? 'background:#fe3030;color:#ffffff;' : 'background:rgba(255,255,255,0.06);color:#64748b;'}">${k} ${esc(LAYERS[k])}</span>`;
+        }).join('')}
+      </div>
     </div>`;
 }
 
@@ -308,6 +354,7 @@ function buildAdminEmail(submission: FormSubmission, viewUrl: string): string {
     <!-- Alignment statement (NPSI selector only) -->
     <div style="padding:20px 0 0;">
       ${alignmentBlock(submission)}
+      ${discoveryReadout(submission)}
     </div>
 
     <!-- Submission data -->
@@ -392,5 +439,6 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
     return { ok: false, error: msg };
   }
 }
+
 
 

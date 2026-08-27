@@ -7,6 +7,7 @@ import hiringAiFullstack from './hiring-ai-fullstack';
 import ispotPricingCall from './ispot-pricing-call';
 import nghiProgramContent from './nghi-program-content';
 import hiringProductTeam from './hiring-product-team';
+import goatDiscovery from './goat-discovery';
 import nghiStudentFeedback from './nghi-student-feedback';
 import nghiInstructorFeedback from './nghi-instructor-feedback';
 
@@ -24,6 +25,7 @@ const forms: FormConfig[] = [
   hiringProductTeam,
   nghiStudentFeedback,
   nghiInstructorFeedback,
+  goatDiscovery,
 ];
 
 export function getAllForms(): FormConfig[] {

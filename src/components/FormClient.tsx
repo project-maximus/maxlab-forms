@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
+import { noteKey } from '@/lib/types';
 import { visibleSections, inputFields, progressFor, missingRequired, stripClosedAnswers } from '@/lib/form-logic';
 import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
@@ -515,6 +516,38 @@ function FieldRenderer(props: FP) {
   }
 }
 
+// A free-text companion under a choice question. Collapsed until asked for, and
+// forced open once it holds text or the answer hits `openWhen` (e.g. "Other").
+function NoteCompanion({ field, values, onChange }: FP) {
+  const key = noteKey(field.id);
+  const value = str(values, key);
+  const forced = !!field.note?.openWhen && str(values, field.id) === field.note.openWhen;
+  const [open, setOpen] = useState(false);
+  const shown = open || !!value || forced;
+  return (
+    <div className="mt-2">
+      {!shown ? (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="text-[12px] font-medium text-brand-ink-4 hover:text-brand-ink transition-colors"
+        >
+          + note
+        </button>
+      ) : (
+        <input
+          type="text"
+          className="field-line max-w-xl"
+          autoFocus={open && !value}
+          value={value}
+          placeholder={forced ? 'Which one?' : field.note?.placeholder ?? 'In their own words, whatever the options miss'}
+          onChange={e => onChange(key, e.target.value)}
+        />
+      )}
+    </div>
+  );
+}
+
 function FieldWrapper({ field, values, onChange, showToast }: FP) {
   if (field.type === 'note') {
     return (
@@ -545,6 +578,7 @@ function FieldWrapper({ field, values, onChange, showToast }: FP) {
       </div>
       <div className="mt-1.5">
         <FieldRenderer field={field} values={values} onChange={onChange} showToast={showToast} />
+        {field.note && <NoteCompanion field={field} values={values} onChange={onChange} />}
       </div>
     </div>
   );

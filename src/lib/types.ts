@@ -80,7 +80,20 @@ export interface FormField {
   body?: string[];
   /** note: renders as a highlighted callout rather than plain prose */
   variant?: 'plain' | 'callout';
+  /**
+   * Optional free-text companion, revealed by a "+ note" toggle under the
+   * control and stored at `${id}__note`. Built for live discovery intake, where
+   * the interviewee's own wording is often worth more than the option picked.
+   */
+  note?: {
+    placeholder?: string;
+    /** Open the note automatically once the answer equals this value, e.g. "Other" */
+    openWhen?: string;
+  };
 }
+
+/** Answer key holding a field's free-text note. */
+export const noteKey = (fieldId: string) => `${fieldId}__note`;
 
 // ── File upload value ─────────────────────────────────────────────────────────
 

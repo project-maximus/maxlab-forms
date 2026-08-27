@@ -5,6 +5,7 @@ import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
 import { directionByName, buildAlignmentStatement } from '@/lib/npsi-selector-data';
 import { answerableSections, displayValue } from '@/lib/form-logic';
+import { noteKey } from '@/lib/types';
 import type { Metadata } from 'next';
 import type { FormSubmission, FormField, FileValue } from '@/lib/types';
 
@@ -99,6 +100,11 @@ function SectionBlock({
             </dt>
             <dd className="flex-1 min-w-0">
               <AnswerValue field={field} value={data[field.id]} />
+              {typeof data[noteKey(field.id)] === 'string' && (data[noteKey(field.id)] as string).trim() !== '' && (
+                <div className="mt-1.5 pl-2.5 border-l-2 border-brand-line text-[13px] text-brand-ink-2 whitespace-pre-wrap">
+                  {data[noteKey(field.id)] as string}
+                </div>
+              )}
             </dd>
           </div>
         ))}
