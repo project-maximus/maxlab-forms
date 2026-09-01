@@ -2,7 +2,7 @@ import type { FormSubmission, FileValue } from './types';
 import { getFormBySlug } from '@/forms';
 import { buildAlignmentStatement } from './npsi-selector-data';
 import { buildReadout, LAYERS } from './goat-discovery-scoring';
-import { answerableSections, displayValue } from './form-logic';
+import { answerableSections, displayValue, matrixAnswers } from './form-logic';
 import { noteKey } from './types';
 
 const FROM       = process.env.RESEND_FROM        ?? 'Maxxlab Forms <admin@maxxlab.tech>';
@@ -81,10 +81,12 @@ function esc(v: unknown): string {
 const nl2br = (v: string) => esc(v).replace(/\r?\n/g, '<br/>');
 
 // ── Section row helper ────────────────────────────────────────────────────────
-function row(label: string, value: string, note?: string) {
-  const answer = value?.trim()
-    ? `<span style="color:#0f172a;">${nl2br(value)}</span>`
-    : `<span style="color:#94a3b8;font-style:italic;">Not specified</span>`;
+function row(label: string, value: string, note?: string, rawHtml?: string) {
+  const answer = rawHtml
+    ? `<span style="color:#0f172a;line-height:1.9;">${rawHtml}</span>`
+    : value?.trim()
+      ? `<span style="color:#0f172a;">${nl2br(value)}</span>`
+      : `<span style="color:#94a3b8;font-style:italic;">Not specified</span>`;
   const display = note
     ? `${answer}<div style="margin-top:5px;padding-left:9px;border-left:2px solid #e2e8f0;color:#475569;font-size:12.5px;">${nl2br(note)}</div>`
     : answer;
@@ -145,9 +147,12 @@ function buildSections(submission: FormSubmission): string {
     );
   }
 
-  const answered = (id: string) => {
+  const answered = (id: string, field?: { type: string; matrixRows?: unknown[] }) => {
     const note = d[noteKey(id)];
     if (typeof note === 'string' && note.trim() !== '') return true;
+    if (field?.type === 'matrix') {
+      return matrixAnswers(field as never, d).length > 0;
+    }
     const val = d[id];
     if (Array.isArray(val)) return val.length > 0;
     return typeof val === 'string' && val.trim() !== '';
@@ -167,7 +172,7 @@ function buildSections(submission: FormSubmission): string {
   let truncatedFrom = -1;
 
   shown.forEach((s, i) => {
-    const fields = answersOnly ? s.fields.filter(f => answered(f.id)) : s.fields;
+    const fields = answersOnly ? s.fields.filter(f => answered(f.id, f)) : s.fields;
     if (fields.length === 0) { empty.push(s.title); return; }
     if (truncatedFrom >= 0) return;
 
@@ -180,6 +185,13 @@ function buildSections(submission: FormSubmission): string {
         // of its own, so the interviewee's wording sits next to what was picked.
         const note = d[noteKey(f.id)];
         const noteText = typeof note === 'string' ? note.trim() : '';
+        if (f.type === 'matrix') {
+          const picked = matrixAnswers(f, d);
+          const body = picked.length
+            ? picked.map(r => `<strong style="color:#334155;">${esc(r.label)}</strong> &nbsp;${esc(r.value)}`).join('<br/>')
+            : '';
+          return row(f.label ?? f.id, '', noteText, body);
+        }
         return row(f.label ?? f.id, displayValue(f, val), noteText);
       }).join('')
     );
@@ -439,6 +451,7 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
     return { ok: false, error: msg };
   }
 }
+
 
 
 

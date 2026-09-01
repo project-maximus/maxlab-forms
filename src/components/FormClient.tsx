@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import type { FormConfig, FormField, FieldOption, FileValue } from '@/lib/types';
-import { noteKey } from '@/lib/types';
+import { noteKey, matrixKey } from '@/lib/types';
 import { visibleSections, inputFields, progressFor, missingRequired, stripClosedAnswers } from '@/lib/form-logic';
 import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
@@ -504,6 +504,7 @@ function NoteField({ field }: FP) {
 function FieldRenderer(props: FP) {
   switch (props.field.type) {
     case 'note':          return <NoteField {...props} />;
+    case 'matrix':        return <MatrixField {...props} />;
     case 'textarea':      return <TextareaField {...props} />;
     case 'date':          return <DateField {...props} />;
     case 'select':        return <SelectField {...props} />;
@@ -514,6 +515,83 @@ function FieldRenderer(props: FP) {
     case 'file':          return <FileField {...props} />;
     default:              return <TextField {...props} />;
   }
+}
+
+// ── Matrix: rows scored against shared columns ───────────────────────────────
+// Rendered with the same dots, hairlines and tokens as every other field, so it
+// reads as part of the form rather than a table dropped into it. Each row is a
+// separate stored answer, which keeps autosave and the payload unremarkable.
+function MatrixField({ field, values, onChange }: FP) {
+  const cols = field.options ?? [];
+  const rows = field.matrixRows ?? [];
+  const multi = !!field.multiColumn;
+
+  const pick = (rowId: string, col: string) => {
+    const key = matrixKey(field.id, rowId);
+    if (!multi) {
+      onChange(key, str(values, key) === col ? '' : col);
+      return;
+    }
+    const cur = arr(values, key);
+    onChange(key, cur.includes(col) ? cur.filter(c => c !== col) : [...cur, col]);
+  };
+  const on = (rowId: string, col: string) => {
+    const key = matrixKey(field.id, rowId);
+    return multi ? arr(values, key).includes(col) : str(values, key) === col;
+  };
+
+  return (
+    <div className="border border-brand-line rounded-md overflow-hidden">
+      {/* Column headings, hidden on narrow screens where each row stacks */}
+      <div className="hidden sm:flex items-end gap-3 px-4 pt-3 pb-2 bg-brand-bg border-b border-brand-line">
+        <div className="flex-1" />
+        {cols.map(c => (
+          <div key={c.value} className="w-[74px] text-center font-mono text-[9.5px] uppercase tracking-[0.12em] text-brand-ink-4 leading-tight">
+            {c.label}
+          </div>
+        ))}
+      </div>
+
+      {rows.map((row, i) => (
+        <div
+          key={row.id}
+          className={clsx(
+            'px-4 py-3 sm:flex sm:items-center sm:gap-3',
+            i > 0 && 'border-t border-brand-line'
+          )}
+        >
+          <div className="flex-1 min-w-0">
+            <div className={clsx('text-[13.5px] leading-snug', row.freeform ? 'italic text-brand-ink-3' : 'text-brand-ink')}>
+              {row.label}
+            </div>
+            {row.description && (
+              <div className="text-[12px] text-brand-ink-4 mt-0.5 leading-snug">{row.description}</div>
+            )}
+          </div>
+
+          <div className="flex gap-3 mt-2 sm:mt-0 flex-shrink-0">
+            {cols.map(c => {
+              const active = on(row.id, c.value);
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => pick(row.id, c.value)}
+                  aria-pressed={active}
+                  aria-label={`${row.label}: ${c.label}`}
+                  className="w-[74px] flex sm:justify-center items-center gap-2 group"
+                >
+                  {multi ? <CheckDot active={active} /> : <RadioDot active={active} />}
+                  {/* the column name repeats on mobile, where the header is hidden */}
+                  <span className="sm:hidden text-[12px] text-brand-ink-3">{c.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 // A free-text companion under a choice question. Collapsed until asked for, and
@@ -540,7 +618,7 @@ function NoteCompanion({ field, values, onChange }: FP) {
           className="field-line max-w-xl"
           autoFocus={open && !value}
           value={value}
-          placeholder={forced ? 'Which one?' : field.note?.placeholder ?? 'In their own words, whatever the options miss'}
+          placeholder={field.note?.placeholder ?? (forced ? 'Which one?' : 'In their own words, whatever the options miss')}
           onChange={e => onChange(key, e.target.value)}
         />
       )}

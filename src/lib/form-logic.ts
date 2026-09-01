@@ -1,4 +1,5 @@
 import type { FormConfig, FormField, FormSection, FileValue } from './types';
+import { matrixKey } from './types';
 
 export type AnswerMap = Record<string, string | string[] | FileValue[] | undefined>;
 
@@ -36,6 +37,21 @@ export function optionLabel(field: FormField, raw: string): string {
     return `${opt.value} · ${opt.label}`;
   }
   return opt.label;
+}
+
+/**
+ * A matrix stores one answer per row, so its rows are read back here rather than
+ * from a single key. Returns only the rows that were actually scored.
+ */
+export function matrixAnswers(field: FormField, data: AnswerMap): { label: string; value: string }[] {
+  return (field.matrixRows ?? []).flatMap(row => {
+    const raw = data[matrixKey(field.id, row.id)];
+    const picked = typeof raw === 'string' ? (raw ? [raw] : [])
+      : Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+    if (picked.length === 0) return [];
+    const labels = picked.map(v => field.options?.find(o => o.value === v)?.label ?? v);
+    return [{ label: row.label, value: labels.join(', ') }];
+  });
 }
 
 /** One printable string for a stored answer. Files are handled by the caller. */
@@ -138,10 +154,16 @@ export function isBranching(form: FormConfig): boolean {
 const isAnswered = (value: AnswerMap[string]): boolean =>
   Array.isArray(value) ? value.length > 0 : typeof value === 'string' && value.trim() !== '';
 
+/** Whether a field has an answer, reading a matrix across its rows. */
+export function fieldAnswered(field: FormField, data: AnswerMap): boolean {
+  if (field.type === 'matrix') return matrixAnswers(field, data).length > 0;
+  return isAnswered(data[field.id]);
+}
+
 /** Answered / total across the sections currently in play. */
 export function progressFor(form: FormConfig, data: AnswerMap) {
   const fields = visibleSections(form, data).flatMap(inputFields);
-  const answered = fields.filter(f => isAnswered(data[f.id])).length;
+  const answered = fields.filter(f => fieldAnswered(f, data)).length;
   return {
     answered,
     total: fields.length,
@@ -153,5 +175,5 @@ export function progressFor(form: FormConfig, data: AnswerMap) {
 export function missingRequired(form: FormConfig, data: AnswerMap): FormField[] {
   return visibleSections(form, data)
     .flatMap(inputFields)
-    .filter(f => f.required && !isAnswered(data[f.id]));
+    .filter(f => f.required && !fieldAnswered(f, data));
 }

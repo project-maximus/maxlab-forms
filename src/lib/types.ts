@@ -16,6 +16,8 @@ export type FieldType =
   | 'slider'
   /** Row of emoji faces standing in for a 1-5 scale (feedback forms) */
   | 'emojiscale'
+  /** Grid of rows scored against shared columns, e.g. channel x at-launch/later/no */
+  | 'matrix'
   | 'file';
 
 export type RadioLayout = 'list' | 'pills' | 'grid' | 'compact';
@@ -80,6 +82,10 @@ export interface FormField {
   body?: string[];
   /** note: renders as a highlighted callout rather than plain prose */
   variant?: 'plain' | 'callout';
+  /** matrix: the rows being scored. Columns come from `options`. */
+  matrixRows?: MatrixRow[];
+  /** matrix: let a row take more than one column (e.g. "want it" and "check often") */
+  multiColumn?: boolean;
   /**
    * Optional free-text companion, revealed by a "+ note" toggle under the
    * control and stored at `${id}__note`. Built for live discovery intake, where
@@ -92,8 +98,24 @@ export interface FormField {
   };
 }
 
+export interface MatrixRow {
+  id: string;
+  label: string;
+  /** Small print under the row label, e.g. "the platform this project is built on" */
+  description?: string;
+  /** Renders in italics as an open-ended catch-all row */
+  freeform?: boolean;
+}
+
 /** Answer key holding a field's free-text note. */
 export const noteKey = (fieldId: string) => `${fieldId}__note`;
+
+/**
+ * A matrix stores one answer per row rather than one per question, so each row
+ * gets its own key. Keeping them as ordinary top-level answers means autosave,
+ * the submit payload and the stored JSON need no special cases.
+ */
+export const matrixKey = (fieldId: string, rowId: string) => `${fieldId}::${rowId}`;
 
 // ── File upload value ─────────────────────────────────────────────────────────
 

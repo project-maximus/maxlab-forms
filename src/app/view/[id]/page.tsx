@@ -4,7 +4,7 @@ import { getFormBySlug } from '@/forms';
 import Logo from '@/components/Logo';
 import PrintButton from '@/components/PrintButton';
 import { directionByName, buildAlignmentStatement } from '@/lib/npsi-selector-data';
-import { answerableSections, displayValue } from '@/lib/form-logic';
+import { answerableSections, displayValue, matrixAnswers } from '@/lib/form-logic';
 import { noteKey } from '@/lib/types';
 import type { Metadata } from 'next';
 import type { FormSubmission, FormField, FileValue } from '@/lib/types';
@@ -99,7 +99,22 @@ function SectionBlock({
               {field.label ?? field.id}
             </dt>
             <dd className="flex-1 min-w-0">
-              <AnswerValue field={field} value={data[field.id]} />
+              {field.type === 'matrix' ? (
+                matrixAnswers(field, data).length === 0
+                  ? <span className="text-brand-ink-4 italic text-sm">Not specified</span>
+                  : (
+                    <div className="flex flex-col gap-1">
+                      {matrixAnswers(field, data).map(r => (
+                        <div key={r.label} className="text-sm text-brand-ink flex gap-2 flex-wrap">
+                          <span className="text-brand-ink-3">{r.label}</span>
+                          <span className="font-medium">{r.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )
+              ) : (
+                <AnswerValue field={field} value={data[field.id]} />
+              )}
               {typeof data[noteKey(field.id)] === 'string' && (data[noteKey(field.id)] as string).trim() !== '' && (
                 <div className="mt-1.5 pl-2.5 border-l-2 border-brand-line text-[13px] text-brand-ink-2 whitespace-pre-wrap">
                   {data[noteKey(field.id)] as string}
