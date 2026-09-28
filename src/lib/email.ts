@@ -185,6 +185,15 @@ function buildSections(submission: FormSubmission): string {
         // of its own, so the interviewee's wording sits next to what was picked.
         const note = d[noteKey(f.id)];
         const noteText = typeof note === 'string' ? note.trim() : '';
+        if (f.type === 'signature') {
+          const sig = typeof val === 'string' ? val : '';
+          // Gmail and Outlook strip data: images, so the row says plainly whether
+          // it was signed and the full mark stays on the submission page.
+          const body = sig.startsWith('data:image')
+            ? `<img src="${esc(sig)}" alt="signature" style="max-height:56px;display:block;" /><span style="color:#94a3b8;font-size:11px;">Signed. If the image does not load, open the submission page above.</span>`
+            : '';
+          return row(f.label ?? f.id, sig ? '' : 'Unsigned', '', body || undefined);
+        }
         if (f.type === 'matrix') {
           const picked = matrixAnswers(f, d);
           const body = picked.length
@@ -451,6 +460,8 @@ export async function sendSubmissionEmails(submission: FormSubmission): Promise<
     return { ok: false, error: msg };
   }
 }
+
+
 
 
 

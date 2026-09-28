@@ -9,6 +9,7 @@ import nghiProgramContent from './nghi-program-content';
 import hiringProductTeam from './hiring-product-team';
 import goatDiscovery from './goat-discovery';
 import nutripathDiscovery from './nutripath-discovery';
+import nooraniContract from './noorani-contract';
 import nghiStudentFeedback from './nghi-student-feedback';
 import nghiInstructorFeedback from './nghi-instructor-feedback';
 
@@ -28,6 +29,7 @@ const forms: FormConfig[] = [
   nghiInstructorFeedback,
   goatDiscovery,
   nutripathDiscovery,
+  nooraniContract,
 ];
 
 export function getAllForms(): FormConfig[] {

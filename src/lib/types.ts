@@ -18,6 +18,8 @@ export type FieldType =
   | 'emojiscale'
   /** Grid of rows scored against shared columns, e.g. channel x at-launch/later/no */
   | 'matrix'
+  /** Drawn or typed signature, stored as a PNG data URL */
+  | 'signature'
   | 'file';
 
 export type RadioLayout = 'list' | 'pills' | 'grid' | 'compact';

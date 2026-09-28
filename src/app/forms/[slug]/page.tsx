@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import { getFormBySlug } from '@/forms';
 import FormClient from '@/components/FormClient';
 import NPSISelectorClient from '@/components/npsi-selector/NPSISelectorClient';
+import NooraniContractClient from '@/components/noorani/NooraniContractClient';
 import type { Metadata } from 'next';
 
 interface Props {
@@ -23,5 +24,6 @@ export default async function FormPage({ params }: Props) {
   const form = getFormBySlug(slug);
   if (!form) notFound();
   if (slug === 'npsi-direction-selector') return <NPSISelectorClient form={form} />;
+  if (slug === 'noorani-contract') return <NooraniContractClient form={form} />;
   return <FormClient form={form} />;
 }

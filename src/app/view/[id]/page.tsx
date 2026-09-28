@@ -99,7 +99,12 @@ function SectionBlock({
               {field.label ?? field.id}
             </dt>
             <dd className="flex-1 min-w-0">
-              {field.type === 'matrix' ? (
+              {field.type === 'signature' ? (
+                typeof data[field.id] === 'string' && (data[field.id] as string).startsWith('data:image')
+                  // eslint-disable-next-line @next/next/no-img-element
+                  ? <img src={data[field.id] as string} alt={field.label ?? 'Signature'} className="max-h-[70px] object-contain object-left" />
+                  : <span className="text-brand-ink-4 italic text-sm">Unsigned</span>
+              ) : field.type === 'matrix' ? (
                 matrixAnswers(field, data).length === 0
                   ? <span className="text-brand-ink-4 italic text-sm">Not specified</span>
                   : (
