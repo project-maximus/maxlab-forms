@@ -300,12 +300,20 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
       <div className="bg-white">
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
           <div className="pt-16 pb-2">
-            <Lockup height={30} />
+            {/* Lockup and reference line sit centred, letterhead style, above the
+                left-aligned headline and body. */}
+            <div className="flex justify-center">
+              <Lockup height={30} />
+            </div>
 
-            <div className="mt-9 font-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-4">
+            <div className="mt-9 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-4">
               Proposal and service agreement · {REF} · Prepared for {CLIENT}
             </div>
-            <h1 className="mt-3.5 max-w-3xl text-[38px] sm:text-[46px] leading-[1.06] tracking-[-0.032em] font-medium text-brand-ink">
+
+            {/* Rule closing the centred letterhead, before the proposal itself. */}
+            <div className="mt-10 border-t border-brand-line" />
+
+            <h1 className="mt-10 max-w-3xl text-[38px] sm:text-[46px] leading-[1.06] tracking-[-0.032em] font-medium text-brand-ink">
               A modern website and a booking system <span className="text-brand-ink-4">that never misses a ride.</span>
             </h1>
             <p className="mt-5 max-w-xl text-[15px] leading-[1.65] text-brand-ink-3">
@@ -341,39 +349,41 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
             active={step === 0} id="overview" n="01" title="What you get"
             note="Three parts that work together. The website is the base. Website Growth keeps you climbing on Google every month. The Minilabs Booking System runs behind the website so no call, message or return trip is missed."
           >
+            {/* Deliberately no figures here. The opening section is about what the
+                three parts are; every number lives in section 03 so the client
+                reads the offer before the price. */}
             <div className="space-y-2.5">
               <div className={clsx(partRow, 'border-brand-line')}>
                 <div>
                   <div className="text-[15px] font-medium text-brand-ink">A · New website</div>
-                  <div className="text-[13px] text-brand-ink-3 mt-0.5">one-time build</div>
+                  <div className="text-[13px] text-brand-ink-3 mt-0.5">One-time build</div>
                 </div>
-                <div className="text-[22px] font-medium tracking-[-0.03em] text-brand-ink tabular-nums leading-none pt-0.5">{cad(PRICE.build)}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 pt-1.5 whitespace-nowrap">Included</div>
               </div>
               <div className={clsx(partRow, 'border-brand-line')}>
                 <div>
                   <div className="text-[15px] font-medium text-brand-ink">B · Website Growth</div>
                   <div className="text-[13px] text-brand-ink-3 mt-0.5">
-                    {on ? `bundle price with Minilabs (regular ${mo(PRICE.growthRegular)})` : `months 1–3, then ${mo(PRICE.growthRegular)}`}
+                    {on ? 'Monthly, bundled with the Booking System' : 'Monthly'}
                   </div>
                 </div>
-                <div className="text-[22px] font-medium tracking-[-0.03em] text-brand-ink tabular-nums leading-none pt-0.5 whitespace-nowrap">{mo(PRICE.growthBundle)}</div>
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 pt-1.5 whitespace-nowrap">Included</div>
               </div>
               <div className={clsx(partRow, 'transition-opacity', on ? 'border-brand-ink' : 'border-brand-line', dim)}>
                 <div>
-                  <div className="text-[15px] font-medium text-brand-ink flex items-center gap-2.5 flex-wrap">
-                    C · Minilabs Booking System
-                    {!on && <span className="font-mono font-normal text-[9.5px] uppercase tracking-[0.1em] text-brand-ink-4 border border-brand-line rounded px-1.5 py-0.5">Not included</span>}
-                  </div>
+                  <div className="text-[15px] font-medium text-brand-ink">C · Minilabs Booking System</div>
                   <div className="text-[13px] text-brand-ink-3 mt-0.5">
-                    launch rate for months 1–3 · setup <Strike>{cad(PRICE.minilabsSetup)}</Strike> <b className="text-brand-ink font-semibold">waived</b>
+                    {on ? 'Monthly, with the setup fee waived' : 'Monthly'}
                   </div>
                 </div>
-                <div className="text-[22px] font-medium tracking-[-0.03em] text-brand-ink tabular-nums leading-none pt-0.5 whitespace-nowrap">
-                  <span className="text-[14px] font-normal mr-2"><Strike>{cad(PRICE.minilabsRegular)}</Strike></span>
-                  {mo(PRICE.minilabsLaunch)}
+                <div className="font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 pt-1.5 whitespace-nowrap">
+                  {on ? 'Included' : 'Not included'}
                 </div>
               </div>
             </div>
+            <p className="mt-4 text-[12.5px] text-brand-ink-4">
+              Pricing is set out in section 03.
+            </p>
           </Section>
 
           <Section
@@ -653,14 +663,29 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
       {/* ── Action bar ── */}
       <div className="fixed bottom-0 left-0 right-0 z-50 no-print" style={{ background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-3.5 flex items-center justify-between gap-3">
-          {/* Left: the live price */}
+          {/* Left: the running total, but only once the client has reached the
+              Investment section. Before that the bar stays quiet so the first
+              screens are about the offer, not the price. */}
           <div className="min-w-0 tabular-nums">
-            <div className="text-[15px] sm:text-[17px] font-medium tracking-[-0.02em] text-brand-ink leading-none whitespace-nowrap">
-              {mo(C.launch)} <span className="text-brand-ink-4 text-[12.5px] font-normal">then {mo(C.after)}</span>
-            </div>
-            <div className="hidden sm:block font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 mt-1.5">
-              Months 1–3 · {cad(C.oneTime)} one-time · {on ? 'with Minilabs' : 'website only'}
-            </div>
+            {step >= 2 ? (
+              <>
+                <div className="text-[15px] sm:text-[17px] font-medium tracking-[-0.02em] text-brand-ink leading-none whitespace-nowrap">
+                  {mo(C.launch)} <span className="text-brand-ink-4 text-[12.5px] font-normal">then {mo(C.after)}</span>
+                </div>
+                <div className="hidden sm:block font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 mt-1.5">
+                  Months 1–3 · {cad(C.oneTime)} one-time · {on ? 'with Minilabs' : 'website only'}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-[14px] sm:text-[15px] font-medium tracking-[-0.02em] text-brand-ink leading-none truncate">
+                  {CLIENT}
+                </div>
+                <div className="hidden sm:block font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 mt-1.5">
+                  Proposal · {REF}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Right: actions */}
