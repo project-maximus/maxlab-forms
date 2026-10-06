@@ -13,7 +13,7 @@ import nooraniContract from './noorani-contract';
 import airportLimoContract from './airport-limo-contract';
 import nghiStudentFeedback from './nghi-student-feedback';
 import nghiInstructorFeedback from './nghi-instructor-feedback';
-import worldTimesHiringTech from './worldtimes-hiring-tech';
+import worldTimesHiring from './worldtimes-hiring';
 
 // ── Form registry ─────────────────────────────────────────────────────────────
 // Add new forms here — they'll appear on the home page automatically.
@@ -33,7 +33,7 @@ const forms: FormConfig[] = [
   nutripathDiscovery,
   nooraniContract,
   airportLimoContract,
-  worldTimesHiringTech,
+  worldTimesHiring,
 ];
 
 export function getAllForms(): FormConfig[] {

@@ -40,14 +40,15 @@ const BRANDS: Brand[] = [
   MAXXLAB,
   {
     id: 'worldtimes',
-    // The tech arm of World Times Institute, and what their logo actually says.
-    name: 'World Times Tech',
-    // Horizontal lockup, trimmed to its artwork so `height` is exact.
-    logo: { src: '/worldtimes-tech.png', alt: 'World Times Tech', height: 44 },
+    name: 'World Times Institute',
+    // Horizontal lockup, trimmed to its artwork so `height` is exact. The
+    // supplied file reads "WORLD TIMES TECH"; the word TECH is cropped off so
+    // the form reads as the institute hiring, not a separate company.
+    logo: { src: '/worldtimes.png', alt: 'World Times Institute', height: 44 },
     submitLabel: 'Send application',
     credit: 'Built by Maxxlab',
     host: 'forms.worldtimesinstitute.com.pk',
-    home: '/forms/worldtimes-hiring-tech',
+    home: '/forms/worldtimes-hiring',
   },
 ];
 
