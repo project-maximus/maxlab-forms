@@ -1007,9 +1007,11 @@ export default function FormClient({ form }: { form: FormConfig }) {
           )}
 
           {/* End note — an email address is turned into a mailto link */}
-          {(() => { const note = form.footerNote ?? "Nothing here is required. We'll cover any blanks together in our discovery call."; return (
+          {(() => { const note = form.footerNote ?? "Nothing here is required. We'll cover any blanks together in our discovery call.";
+            if (!note && !brand.credit) return null;
+            return (
             <div className="mt-14 max-w-2xl">
-              <p className="text-[13px] text-brand-ink-3 leading-relaxed">
+              {note && <p className="text-[13px] text-brand-ink-3 leading-relaxed">
                 {note.split(/([\w.+-]+@[\w-]+\.[\w.]+)/g).map((part, i) =>
                   /^[\w.+-]+@[\w-]+\.[\w.]+$/.test(part) ? (
                     <a key={i} href={`mailto:${part}`}
@@ -1018,7 +1020,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
                     </a>
                   ) : part
                 )}
-              </p>
+              </p>}
               {brand.credit && (
                 <p className="mt-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-ink-4">
                   {brand.credit}

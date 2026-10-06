@@ -46,7 +46,6 @@ const BRANDS: Brand[] = [
     // the form reads as the institute hiring, not a separate company.
     logo: { src: '/worldtimes.png', alt: 'World Times Institute', height: 44 },
     submitLabel: 'Send application',
-    credit: 'Built by Maxxlab',
     host: 'forms.worldtimesinstitute.com.pk',
     home: '/forms/worldtimes-hiring',
   },

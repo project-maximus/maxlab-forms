@@ -23,7 +23,7 @@ const worldTimesHiring: FormConfig = {
     'We are hiring across development, design, social media, marketing and IT. Pick the role you are applying for and the rest of the form changes to match it.',
   client: 'World Times Institute',
   layout: 'steps',
-  footerNote: 'Questions about the role? Contact: careers@worldtimesinstitute.com.pk',
+  footerNote: '',
   sections: [
     // ── 01 · Role picker ─────────────────────────────────────────────────────
     {
@@ -106,8 +106,8 @@ const worldTimesHiring: FormConfig = {
           id: 'fs_intro',
           type: 'note',
           body: [
-            "World Times Institute prepares thousands of students for competitive examinations. Almost everything around that still runs on paper, spreadsheets and phone calls. We are building the software to replace it, and we want a full-stack developer who can own a feature from the database schema through to the screen a student actually uses.",
-            "This is not agency work on short contracts. You would be building systems the institute depends on every single intake, and you would still be maintaining them a year later. That changes how you write code, and we are looking for someone who wants that kind of ownership.",
+            "World Times Institute prepares students for competitive examinations. We are looking for a full-stack developer to build and maintain the systems behind that work: admissions, the student portal, and the platforms students use day to day.",
+            "You would own features end to end, from the database schema through to the screen a student uses, and keep maintaining them once they are live. We are looking for someone who writes code with that longer horizon in mind.",
           ],
         },
         {
@@ -139,8 +139,8 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'The technology team is new, so you would be shaping it rather than joining a finished process. You will work directly with the people running the programmes, which means short feedback loops and very little guessing about what is needed.',
-            'Our students are on mid-range Android phones on uneven connections. Performance and reliability are product requirements here, not polish.',
+            'The role sits in a small team, with requirements coming from the departments that use the systems.',
+            'Many of our students use mid-range Android devices on variable connections, so performance and reliability are part of the requirement rather than a finishing touch.',
           ],
         },
       ],
@@ -158,8 +158,8 @@ const worldTimesHiring: FormConfig = {
           id: 'fe_intro',
           type: 'note',
           body: [
-            "Every prospective student forms their impression of the institute from a screen before they ever walk into a classroom. You would own those screens: the public site, the course pages, the application flow and the portal students live in once they have enrolled.",
-            "We are looking for someone who cares how an interface behaves on a four-year-old Android phone on a weak connection, not only how it looks on a laptop in an office.",
+            "Most people form their impression of the institute from a screen before they ever visit a campus. This role covers those screens: the public site, the course pages, the application flow, and the student portal.",
+            "We are looking for someone who cares how an interface behaves on an older Android phone on a weak connection, not only how it looks on a desktop.",
           ],
         },
         {
@@ -191,7 +191,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'You will work closely with the designer and with whoever is building the backend, in a small team where you can see the effect of your work on real students within the same term.',
+            'The role works closely with design and with the developers building the systems behind the interface.',
           ],
         },
       ],
@@ -209,8 +209,8 @@ const worldTimesHiring: FormConfig = {
           id: 'ux_intro',
           type: 'note',
           body: [
-            "Our students range from fresh graduates who live on their phones to people returning to study after years away. A design that assumes everyone is comfortable with software will quietly lose a large share of them. We want a designer who treats that as the core of the problem rather than an edge case.",
-            "You would design the whole journey: the first page someone lands on, the application they fill in, and the portal they use every week once they are enrolled.",
+            "Our students range from recent graduates to people returning to study after years away, with a wide range of comfort using software. A design that assumes everyone is confident with technology will lose a share of them, and we are looking for a designer who treats that as central rather than an edge case.",
+            "The role covers the full journey: the first page someone lands on, the application they fill in, and the portal they use once enrolled.",
           ],
         },
         {
@@ -242,7 +242,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'You would be the first designer on the team, so you are setting the standard rather than following one. You will have direct access to students and to the admissions staff who answer their questions all day, which is the fastest research anyone could ask for.',
+            'The role covers design across the institute\'s digital products, working alongside the developers who build them.',
           ],
         },
       ],
@@ -260,8 +260,8 @@ const worldTimesHiring: FormConfig = {
           id: 'qa_intro',
           type: 'note',
           body: [
-            "When enrolment opens, a few thousand people hit the same forms in the same week. A broken payment step or a mock test that loses answers is not a small bug here, it is a student who misses an intake and an office that spends days on the phone.",
-            "We want someone who tests the things that actually hurt when they break, and who writes the problem up clearly enough that a developer can reproduce it on the first try.",
+            "Enrolment periods concentrate a large number of users on the same forms in a short window. A broken payment step or a test that loses answers is not a minor bug in that context, it affects whether a student makes an intake at all.",
+            "We are looking for someone who tests the things that matter most when they fail, and who writes a problem up clearly enough that a developer can reproduce it first time.",
           ],
         },
         {
@@ -293,7 +293,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'You would be the first QA person on the team and the last line before something reaches a student. That carries real weight here, and your "no, this is not ready" will be listened to.',
+            'The role is the last check before a release reaches students, and works closely with the developers building it.',
           ],
         },
       ],
@@ -311,8 +311,8 @@ const worldTimesHiring: FormConfig = {
           id: 'sm_intro',
           type: 'note',
           body: [
-            "Most of our students find us on a phone, scrolling, long before they read a prospectus. Our channels are where the institute makes its first impression, and right now they are run in the gaps between other work. We want someone whose actual job this is.",
-            "This is not a posting job. You would decide what we say, make most of it yourself, and answer the hundreds of people who reply asking about fees, dates and eligibility.",
+            "Most people come across the institute on a phone long before they read anything formal about it. Our social channels are where that first impression is made, and this role exists to run them properly.",
+            "The work goes beyond scheduling posts. It covers planning what we publish, producing a good share of it, and responding to the questions that come back about fees, dates and eligibility.",
           ],
         },
         {
@@ -322,7 +322,7 @@ const worldTimesHiring: FormConfig = {
           body: [
             '- A content calendar that runs ahead of the intake cycle rather than reacting to it',
             '- Short-form video: lecture clips, faculty answering a common question, student results, campus moments',
-            '- Results and toppers announcements, which are our single strongest piece of proof and deserve better than a plain photo',
+            '- Results and achievement announcements, presented well rather than as a plain photo',
             '- Admissions campaigns: deadlines, open days, fee instalment news, in the weeks when it matters',
             '- Replies. Comments, DMs and the same five questions asked a hundred different ways, answered quickly and in the right tone',
           ],
@@ -345,7 +345,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'You would have direct access to faculty and students, which is where the good material is. Approval chains are short: an idea in the morning can be published the same afternoon.',
+            'The role works alongside the admissions and marketing teams, and coordinates with faculty for content.',
           ],
         },
       ],
@@ -363,8 +363,8 @@ const worldTimesHiring: FormConfig = {
           id: 'mk_intro',
           type: 'note',
           body: [
-            "Every intake we need a certain number of the right students to find us, enquire, and enrol. At the moment we do not reliably know which of our efforts produced them. We want someone who can both run the campaigns and tell us what they actually returned.",
-            "You would own the path from a stranger seeing an ad to a student paying their first instalment, and you would be judged on cost per enrolment rather than on impressions.",
+            "Each intake depends on the right students finding us, enquiring, and going on to enrol. This role covers both running the campaigns that make that happen and reporting on what they returned.",
+            "The role spans the full path from someone first seeing an advertisement to an enrolled student, and is measured on cost per enrolment rather than on impressions.",
           ],
         },
         {
@@ -398,7 +398,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'Admissions runs in cycles, so the work is genuinely seasonal: intense in the weeks before an intake, more about building and measuring in between. You will be given the budget and the number, and a lot of latitude on how you reach it.',
+            'Admissions runs in cycles, so the work is seasonal: heaviest in the weeks before an intake, and more about building and measuring in between.',
           ],
         },
       ],
@@ -416,8 +416,8 @@ const worldTimesHiring: FormConfig = {
           id: 'it_intro',
           type: 'note',
           body: [
-            "Classes, mock examinations, staff work and admissions all depend on the computers, the network and the classroom equipment actually working. When they do not, teaching stops. This role is the person who makes sure that rarely happens, and who fixes it fast when it does.",
-            "It is a practical, hands-on job. You will be in the labs and the classrooms, not only at a desk.",
+            "Classes, examinations, staff work and admissions all depend on the computers, the network and the classroom equipment working reliably. This role keeps that running, and resolves problems quickly when they occur.",
+            "It is a practical, hands-on role based around the labs and classrooms rather than only at a desk.",
           ],
         },
         {
@@ -452,7 +452,7 @@ const worldTimesHiring: FormConfig = {
           label: 'How we work',
           variant: 'callout',
           body: [
-            'You would be the person everyone calls, which means real authority over how things are set up. We would rather you spent money preventing a failure than spent a morning recovering from one.',
+            'The role supports staff and students across campus, and covers both day to day issues and planned maintenance.',
           ],
         },
       ],
