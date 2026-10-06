@@ -23,6 +23,11 @@ export interface Brand {
   credit?: string;
   /** Dedicated hostname. Requests on it resolve only this brand's forms. */
   host?: string;
+  /**
+   * Where the bare hostname should land. Someone who types the domain without
+   * a path gets sent here rather than a 404. Leave unset to 404 the root.
+   */
+  home?: string;
 }
 
 export const MAXXLAB: Brand = {
@@ -42,6 +47,7 @@ const BRANDS: Brand[] = [
     submitLabel: 'Send application',
     credit: 'Built by Maxxlab',
     host: 'forms.worldtimesinstitute.com.pk',
+    home: '/forms/worldtimes-hiring-tech',
   },
 ];
 

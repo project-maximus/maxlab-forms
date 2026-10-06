@@ -21,6 +21,12 @@ export function middleware(req: NextRequest) {
 
   const hostBrand = brandForHost(req.headers.get('host'));
   if (hostBrand) {
+    // Someone typing just the domain should land on the form, not a bare 404.
+    // Temporary, not permanent: a brand may gain a real landing page later and
+    // a cached permanent redirect would be painful to undo.
+    if (pathname === '/' && hostBrand.home) {
+      return NextResponse.redirect(new URL(hostBrand.home, req.url), 307);
+    }
     const allowed = CLIENT_HOST_ALLOWED.some(prefix => pathname.startsWith(prefix));
     if (!allowed) return new NextResponse('Not found', { status: 404 });
     return NextResponse.next();
