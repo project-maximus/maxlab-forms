@@ -5,9 +5,10 @@ import type { FormConfig } from '@/lib/types';
 // every role-specific section below is gated on that answer via `showIf`, so an
 // applicant only ever sees their own track.
 //
-// The institute runs exam-preparation programmes; this team builds and runs the
-// software behind them: the public site, admissions, the student portal and the
-// mock-test platform.
+// The institute runs exam-preparation programmes. These roles cover the teams
+// behind them: the software (public site, admissions, student portal, mock-test
+// platform), the design of it, how students hear about us, and the campus IT
+// that keeps labs and exams running.
 
 const ROLE_FIELD = 'role';
 
@@ -15,11 +16,11 @@ const worldTimesHiring: FormConfig = {
   id: 'worldtimes-hiring',
   slug: 'worldtimes-hiring',
   brand: 'worldtimes',
-  title: 'Technology Team Application',
+  title: 'Team Application',
   heroAccent: 'Application',
-  eyebrow: 'World Times Institute · Hiring · Technology team',
+  eyebrow: 'World Times Institute · Hiring · Development · Design · Marketing · IT',
   description:
-    'We are building our in-house technology team. Pick the role you are applying for and the rest of the form changes to match it.',
+    'We are hiring across development, design, social media, marketing and IT. Pick the role you are applying for and the rest of the form changes to match it.',
   client: 'World Times Institute',
   layout: 'steps',
   footerNote: 'Questions about the role? Contact: careers@worldtimesinstitute.com.pk',
@@ -66,6 +67,27 @@ const worldTimesHiring: FormConfig = {
               badge: 'Quality',
               badgeVariant: 'green',
               description: 'Enrolment, payments and exams, tested before students meet them.',
+            },
+            {
+              value: 'social',
+              label: 'Social Media Executive',
+              badge: 'Content',
+              badgeVariant: 'amber',
+              description: 'The channels where most students first hear of us.',
+            },
+            {
+              value: 'marketing',
+              label: 'Digital Marketing Executive',
+              badge: 'Growth',
+              badgeVariant: 'red',
+              description: 'Campaigns, search and the admissions funnel.',
+            },
+            {
+              value: 'it',
+              label: 'IT Officer',
+              badge: 'Operations',
+              badgeVariant: 'green',
+              description: 'Labs, network, classrooms and exam-day readiness.',
             },
           ],
         },
@@ -272,6 +294,165 @@ const worldTimesHiring: FormConfig = {
           variant: 'callout',
           body: [
             'You would be the first QA person on the team and the last line before something reaches a student. That carries real weight here, and your "no, this is not ready" will be listened to.',
+          ],
+        },
+      ],
+    },
+
+    // ── Role brief · Social Media ────────────────────────────────────────────
+    {
+      id: 'brief-social',
+      num: '02',
+      title: 'The role · Social Media Executive',
+      description: 'Where most students hear of us first.',
+      showIf: { field: ROLE_FIELD, equals: ['social'] },
+      fields: [
+        {
+          id: 'sm_intro',
+          type: 'note',
+          body: [
+            "Most of our students find us on a phone, scrolling, long before they read a prospectus. Our channels are where the institute makes its first impression, and right now they are run in the gaps between other work. We want someone whose actual job this is.",
+            "This is not a posting job. You would decide what we say, make most of it yourself, and answer the hundreds of people who reply asking about fees, dates and eligibility.",
+          ],
+        },
+        {
+          id: 'sm_work',
+          type: 'note',
+          label: "What you'll work on",
+          body: [
+            '- A content calendar that runs ahead of the intake cycle rather than reacting to it',
+            '- Short-form video: lecture clips, faculty answering a common question, student results, campus moments',
+            '- Results and toppers announcements, which are our single strongest piece of proof and deserve better than a plain photo',
+            '- Admissions campaigns: deadlines, open days, fee instalment news, in the weeks when it matters',
+            '- Replies. Comments, DMs and the same five questions asked a hundred different ways, answered quickly and in the right tone',
+          ],
+        },
+        {
+          id: 'sm_expect',
+          type: 'note',
+          label: 'What we expect',
+          body: [
+            '- You write well in both Urdu and English, and know which one a given post needs',
+            '- You can shoot and cut short-form video yourself on a phone. Fast and good beats slow and perfect here',
+            '- You know what actually performs on Facebook, Instagram, TikTok and YouTube in Pakistan, rather than what performs abroad',
+            '- You can keep a tone that is warm but still serious. We are preparing people for competitive examinations, not selling a gadget',
+            '- You can handle comment volume during admissions week without going quiet',
+          ],
+        },
+        {
+          id: 'sm_how',
+          type: 'note',
+          label: 'How we work',
+          variant: 'callout',
+          body: [
+            'You would have direct access to faculty and students, which is where the good material is. Approval chains are short: an idea in the morning can be published the same afternoon.',
+          ],
+        },
+      ],
+    },
+
+    // ── Role brief · Marketing ───────────────────────────────────────────────
+    {
+      id: 'brief-marketing',
+      num: '02',
+      title: 'The role · Digital Marketing Executive',
+      description: 'Own the number, not the activity.',
+      showIf: { field: ROLE_FIELD, equals: ['marketing'] },
+      fields: [
+        {
+          id: 'mk_intro',
+          type: 'note',
+          body: [
+            "Every intake we need a certain number of the right students to find us, enquire, and enrol. At the moment we do not reliably know which of our efforts produced them. We want someone who can both run the campaigns and tell us what they actually returned.",
+            "You would own the path from a stranger seeing an ad to a student paying their first instalment, and you would be judged on cost per enrolment rather than on impressions.",
+          ],
+        },
+        {
+          id: 'mk_work',
+          type: 'note',
+          label: "What you'll work on",
+          body: [
+            '- Paid campaigns on Meta and Google, from targeting and copy through to budget pacing across an intake cycle',
+            '- Search: making sure that when someone searches for the exam we prepare people for, we are on the first page',
+            '- Landing pages for specific programmes and campaigns, working with the developers and designer',
+            '- The enquiry-to-enrolment funnel: where people drop out, and what to change about it',
+            '- WhatsApp and SMS campaigns, which still convert better here than email for a lot of our audience',
+            '- Reporting that management can read: enquiries, cost per enquiry, cost per enrolment, by programme',
+          ],
+        },
+        {
+          id: 'mk_expect',
+          type: 'note',
+          label: 'What we expect',
+          body: [
+            '- You have run a real budget and can say what it returned, not only what it was spent on',
+            '- Comfortable in Meta Ads Manager and Google Ads, and in analytics rather than only the ad dashboards',
+            '- You write copy that gets a click without overpromising. We cannot promise anyone a result in a competitive examination',
+            '- You understand this market: how Pakistani students and their parents decide on an institute, and what they are sceptical of',
+            '- You can tell the difference between a campaign that is failing and a landing page that is failing',
+          ],
+        },
+        {
+          id: 'mk_how',
+          type: 'note',
+          label: 'How we work',
+          variant: 'callout',
+          body: [
+            'Admissions runs in cycles, so the work is genuinely seasonal: intense in the weeks before an intake, more about building and measuring in between. You will be given the budget and the number, and a lot of latitude on how you reach it.',
+          ],
+        },
+      ],
+    },
+
+    // ── Role brief · IT ──────────────────────────────────────────────────────
+    {
+      id: 'brief-it',
+      num: '02',
+      title: 'The role · IT Officer',
+      description: 'Keep the campus running, especially on exam day.',
+      showIf: { field: ROLE_FIELD, equals: ['it'] },
+      fields: [
+        {
+          id: 'it_intro',
+          type: 'note',
+          body: [
+            "Classes, mock examinations, staff work and admissions all depend on the computers, the network and the classroom equipment actually working. When they do not, teaching stops. This role is the person who makes sure that rarely happens, and who fixes it fast when it does.",
+            "It is a practical, hands-on job. You will be in the labs and the classrooms, not only at a desk.",
+          ],
+        },
+        {
+          id: 'it_work',
+          type: 'note',
+          label: "What you'll work on",
+          body: [
+            '- The computer labs: machines, images, software, and keeping them usable through an entire term',
+            '- Network and internet across campus, including the wifi students complain about',
+            '- Classroom equipment: projectors, screens, audio, and the recording setup we use for lecture content',
+            '- Staff accounts, email, shared drives and printers',
+            '- Backups, and confirming they can actually be restored rather than assuming',
+            '- Exam-day readiness: testing everything in advance and standing by while a mock test runs',
+            '- Hardware: diagnosing faults, arranging repairs, and advising on what to buy',
+          ],
+        },
+        {
+          id: 'it_expect',
+          type: 'note',
+          label: 'What we expect',
+          body: [
+            '- Solid networking basics: IP, DNS, DHCP, routers and switches, and diagnosing a connection that is slow rather than dead',
+            '- Windows administration, and comfort with user accounts and permissions',
+            '- Real troubleshooting under time pressure, because a lab failing mid-examination will not wait',
+            '- Patience with people who are not technical. Explaining the fix matters as much as the fix',
+            '- Keeping a record of what you did, so the next problem is faster to solve',
+          ],
+        },
+        {
+          id: 'it_how',
+          type: 'note',
+          label: 'How we work',
+          variant: 'callout',
+          body: [
+            'You would be the person everyone calls, which means real authority over how things are set up. We would rather you spent money preventing a failure than spent a morning recovering from one.',
           ],
         },
       ],
@@ -568,6 +749,216 @@ const worldTimesHiring: FormConfig = {
           type: 'url',
           label: 'A test plan, checklist or bug tracker we can look at',
           hint: 'Optional. Anything you have written that shows how you organise testing. Make sure the link is publicly viewable.',
+        },
+      ],
+    },
+
+    // ── Skills · Social Media ────────────────────────────────────────────────
+    {
+      id: 'skills-social',
+      num: '05',
+      title: 'Your social media experience',
+      description: 'Show us work, not follower counts you bought.',
+      showIf: { field: ROLE_FIELD, equals: ['social'] },
+      fields: [
+        {
+          id: 'sm_platforms',
+          type: 'checkboxgroup',
+          layout: 'list',
+          label: 'Platforms you have genuinely run, not just used',
+          hint: 'Only tick what you could own today without hand-holding.',
+          options: [
+            { value: 'facebook', label: 'Facebook pages and groups' },
+            { value: 'instagram', label: 'Instagram, including Reels' },
+            { value: 'tiktok', label: 'TikTok' },
+            { value: 'youtube', label: 'YouTube, including Shorts' },
+            { value: 'linkedin', label: 'LinkedIn' },
+            { value: 'video_edit', label: 'Short-form video editing', description: 'CapCut, Premiere, or whatever you actually use.' },
+            { value: 'design_tools', label: 'Graphics for social', description: 'Canva, Photoshop, Figma.' },
+            { value: 'copy_urdu', label: 'Writing social copy in Urdu' },
+            { value: 'copy_english', label: 'Writing social copy in English' },
+            { value: 'community', label: 'Community management at volume', description: 'Comments, DMs and complaints.' },
+          ],
+        },
+        {
+          id: 'sm_strongest',
+          type: 'textarea',
+          label: 'Which of the responsibilities above are you strongest in, and what would you want to take on first?',
+          hint: 'This is the paragraph we read most closely. Be specific about real work you have done.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'sm_account_url',
+          type: 'url',
+          label: 'An account you have run that we can open',
+          hint: 'Yours or a client page. If it is not public, tell us in the notes at the end instead.',
+          required: true,
+          halfWidth: true,
+        },
+        {
+          id: 'sm_best_post_url',
+          type: 'url',
+          label: 'The single post or video you are most proud of',
+          hint: 'Link straight to it.',
+          halfWidth: true,
+        },
+        {
+          id: 'sm_growth',
+          type: 'textarea',
+          label: 'Tell us what that account did while you ran it',
+          hint: 'Where it started, where it got to, over what period, and what you changed to get there. Numbers help, honesty helps more.',
+          rows: 4,
+          required: true,
+        },
+        {
+          id: 'sm_idea',
+          type: 'textarea',
+          label: 'Admissions open next month. Give us one content idea you would run.',
+          hint: 'A specific idea, not a strategy. What the post or video actually is, and who it is aimed at.',
+          rows: 4,
+          required: true,
+        },
+      ],
+    },
+
+    // ── Skills · Marketing ───────────────────────────────────────────────────
+    {
+      id: 'skills-marketing',
+      num: '05',
+      title: 'Your marketing experience',
+      description: 'What you ran, and what it returned.',
+      showIf: { field: ROLE_FIELD, equals: ['marketing'] },
+      fields: [
+        {
+          id: 'mk_channels',
+          type: 'checkboxgroup',
+          layout: 'list',
+          label: 'Channels you have run with a real budget',
+          hint: 'Only tick what you could own today without hand-holding.',
+          options: [
+            { value: 'meta_ads', label: 'Meta Ads', description: 'Facebook and Instagram.' },
+            { value: 'google_ads', label: 'Google Ads', description: 'Search, Display or YouTube.' },
+            { value: 'tiktok_ads', label: 'TikTok Ads' },
+            { value: 'seo', label: 'SEO', description: 'On-page, content, technical.' },
+            { value: 'landing', label: 'Landing pages and conversion rate work' },
+            { value: 'whatsapp_sms', label: 'WhatsApp or SMS campaigns' },
+            { value: 'email', label: 'Email marketing' },
+            { value: 'analytics', label: 'Analytics', description: 'GA4, Meta Pixel, conversion tracking and attribution.' },
+            { value: 'copywriting', label: 'Writing the ad copy yourself' },
+          ],
+        },
+        {
+          id: 'mk_budget',
+          type: 'radio',
+          layout: 'pills',
+          label: 'Largest monthly ad budget you have personally managed',
+          required: true,
+          options: [
+            { value: 'none', label: 'None yet' },
+            { value: 'under50k', label: 'Under 50k PKR' },
+            { value: '50to200k', label: '50k to 200k PKR' },
+            { value: '200to500k', label: '200k to 500k PKR' },
+            { value: 'over500k', label: 'Over 500k PKR' },
+          ],
+        },
+        {
+          id: 'mk_strongest',
+          type: 'textarea',
+          label: 'Which of the responsibilities above are you strongest in, and what would you want to take on first?',
+          hint: 'This is the paragraph we read most closely. Be specific about real work you have shipped.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'mk_campaign',
+          type: 'textarea',
+          label: 'Describe one campaign you ran, with its numbers',
+          hint: 'What you were selling, who you targeted, what you spent, and what came back. Cost per lead or per sale if you have it. If a campaign failed and you learned from it, that is a fine answer too.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'mk_funnel',
+          type: 'textarea',
+          label: 'Enquiries are coming in but almost none enrol. How do you find out why?',
+          hint: 'Walk us through what you would look at, in order. We are reading how you diagnose, not whether you guess the right answer.',
+          rows: 4,
+          required: true,
+        },
+      ],
+    },
+
+    // ── Skills · IT ──────────────────────────────────────────────────────────
+    {
+      id: 'skills-it',
+      num: '05',
+      title: 'Your IT experience',
+      description: 'What you have supported, and how you handle it breaking.',
+      showIf: { field: ROLE_FIELD, equals: ['it'] },
+      fields: [
+        {
+          id: 'it_areas',
+          type: 'checkboxgroup',
+          layout: 'list',
+          label: 'Areas you have real hands-on experience with',
+          hint: 'Only tick what you could own today without hand-holding.',
+          options: [
+            { value: 'networking', label: 'Networking', description: 'IP, DNS, DHCP, routers, switches, wifi.' },
+            { value: 'windows', label: 'Windows administration and user accounts' },
+            { value: 'linux', label: 'Linux servers' },
+            { value: 'labs', label: 'Running a computer lab or a fleet of shared machines' },
+            { value: 'hardware', label: 'Hardware diagnosis and repair' },
+            { value: 'av', label: 'Classroom AV', description: 'Projectors, screens, audio, recording.' },
+            { value: 'backup', label: 'Backups, and testing that a restore works' },
+            { value: 'email_admin', label: 'Email and shared drive administration', description: 'Google Workspace, Microsoft 365, cPanel.' },
+            { value: 'security', label: 'Basic security', description: 'Antivirus, patching, access control.' },
+            { value: 'cctv', label: 'CCTV or access control systems' },
+          ],
+        },
+        {
+          id: 'it_scale',
+          type: 'radio',
+          layout: 'pills',
+          label: 'Largest setup you have been responsible for',
+          halfWidth: true,
+          options: [
+            { value: 'under20', label: 'Under 20 machines' },
+            { value: '20to50', label: '20 to 50' },
+            { value: '50to150', label: '50 to 150' },
+            { value: 'over150', label: 'Over 150' },
+          ],
+        },
+        {
+          id: 'it_strongest',
+          type: 'textarea',
+          label: 'Which of the responsibilities above are you strongest in, and what would you want to take on first?',
+          hint: 'This is the paragraph we read most closely. Be specific about real work you have done.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'it_incident',
+          type: 'textarea',
+          label: 'Tell us about something that broke at the worst possible moment',
+          hint: 'What failed, how you worked out why, what you did, and how long it took. We are interested in how you think when people are waiting on you.',
+          rows: 5,
+          required: true,
+        },
+        {
+          id: 'it_lab_down',
+          type: 'textarea',
+          label: 'A lab of 40 machines loses internet ten minutes into a mock exam. What do you do?',
+          hint: 'In order. We are reading your diagnosis and what you prioritise, not a textbook answer.',
+          rows: 4,
+          required: true,
+        },
+        {
+          id: 'it_certs',
+          type: 'text',
+          label: 'Certifications, if any',
+          placeholder: 'e.g. CCNA, CompTIA A+, MCSA',
+          hint: 'Optional. We care more about what you have actually fixed.',
         },
       ],
     },
