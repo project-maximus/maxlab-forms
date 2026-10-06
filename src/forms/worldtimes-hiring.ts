@@ -976,7 +976,7 @@ const worldTimesHiring: FormConfig = {
           type: 'text',
           label: 'Salary expectation',
           hint: 'Monthly, so it is easy to compare. Quote it in PKR.',
-          placeholder: 'e.g. 80,000 PKR / month',
+          placeholder: 'e.g. 25,000 PKR / month',
           required: true,
           halfWidth: true,
         },
