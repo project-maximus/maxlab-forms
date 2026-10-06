@@ -1,6 +1,20 @@
 import type { NextConfig } from 'next';
 
+// Slugs that have been renamed. The old URL keeps working, because a form link
+// may already be out in the world on a job post, a WhatsApp message or someone's
+// open tab. Temporary, so a slug can be reused later if it ever needs to be.
+const RENAMED_SLUGS: Record<string, string> = {
+  'worldtimes-hiring-tech': 'worldtimes-hiring',
+};
+
 const nextConfig: NextConfig = {
+  async redirects() {
+    return Object.entries(RENAMED_SLUGS).map(([from, to]) => ({
+      source: `/forms/${from}`,
+      destination: `/forms/${to}`,
+      permanent: false,
+    }));
+  },
   // Polyfill broken Node.js 25 built-in localStorage in the server runtime
   serverExternalPackages: [],
   webpack(config, { isServer }) {
