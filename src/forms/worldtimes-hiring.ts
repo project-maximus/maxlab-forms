@@ -5,10 +5,8 @@ import type { FormConfig } from '@/lib/types';
 // every role-specific section below is gated on that answer via `showIf`, so an
 // applicant only ever sees their own track.
 //
-// The institute runs exam-preparation programmes. These roles cover the teams
-// behind them: the software (public site, admissions, student portal, mock-test
-// platform), the design of it, how students hear about us, and the campus IT
-// that keeps labs and exams running.
+// Role descriptions are deliberately generic: they say what each job involves
+// rather than naming internal systems or describing how the institute runs.
 
 const ROLE_FIELD = 'role';
 
@@ -45,49 +43,49 @@ const worldTimesHiring: FormConfig = {
               label: 'Full-Stack Developer',
               badge: 'Engineering',
               badgeVariant: 'blue',
-              description: 'Student portal, admissions and fee collection, end to end.',
+              description: 'Both sides of a web application, from data through to interface.',
             },
             {
               value: 'frontend',
               label: 'Frontend Developer',
               badge: 'Engineering',
               badgeVariant: 'blue',
-              description: 'The public site and every student-facing screen.',
+              description: 'The pages and interfaces people actually use.',
             },
             {
               value: 'uiux',
               label: 'UI/UX Designer',
               badge: 'Design',
               badgeVariant: 'amber',
-              description: 'The journey from first visit to enrolled student.',
+              description: 'How a product works, not only how it looks.',
             },
             {
               value: 'qa',
               label: 'QA Tester',
               badge: 'Quality',
               badgeVariant: 'green',
-              description: 'Enrolment, payments and exams, tested before students meet them.',
+              description: 'Finding the problems before the people using it do.',
             },
             {
               value: 'social',
               label: 'Social Media Executive',
               badge: 'Content',
               badgeVariant: 'amber',
-              description: 'The channels where most students first hear of us.',
+              description: 'What we publish, and the conversations that follow.',
             },
             {
               value: 'marketing',
               label: 'Digital Marketing Executive',
               badge: 'Growth',
               badgeVariant: 'red',
-              description: 'Campaigns, search and the admissions funnel.',
+              description: 'Campaigns, search, and what they actually returned.',
             },
             {
               value: 'it',
               label: 'IT Officer',
               badge: 'Operations',
               badgeVariant: 'green',
-              description: 'Labs, network, classrooms and exam-day readiness.',
+              description: 'Computers, network and equipment, kept running.',
             },
           ],
         },
@@ -99,15 +97,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-fullstack',
       num: '02',
       title: 'The role · Full-Stack Developer',
-      description: 'Own features from database to screen.',
+      description: 'Own features from the database through to the screen.',
       showIf: { field: ROLE_FIELD, equals: ['fullstack'] },
       fields: [
         {
           id: 'fs_intro',
           type: 'note',
           body: [
-            "World Times Institute prepares students for competitive examinations. We are looking for a full-stack developer to build and maintain the systems behind that work: admissions, the student portal, and the platforms students use day to day.",
-            "You would own features end to end, from the database schema through to the screen a student uses, and keep maintaining them once they are live. We are looking for someone who writes code with that longer horizon in mind.",
+            'A full-stack role covering both sides of a web application: the data and the APIs behind it, and the interface people actually use.',
+            'You would take a feature from start to finish rather than handing it off halfway, and keep maintaining it once it is live.',
           ],
         },
         {
@@ -115,32 +113,24 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- The student portal: enrolment, class schedules, attendance, results and course material, with separate access for students, instructors and administration',
-            '- Admissions: online applications, document uploads, shortlisting and the admin screens the office uses to process them',
-            '- Fee collection and receipts, including local payment methods and reconciling what has actually been paid',
-            '- The mock-test platform: timed papers, automatic marking where possible, and result reporting students and instructors can both read',
-            '- Reporting the management actually asks for: enrolment numbers by programme, fee recovery, batch performance',
+            '- Building and maintaining web applications end to end',
+            '- Designing the data model and writing the queries behind it',
+            '- Building and documenting APIs',
+            '- Authentication, user roles and permissions',
+            '- Integrating third-party services such as payment providers',
+            '- Reviewing code and keeping what is already live working',
           ],
         },
         {
-          id: 'fs_tech',
+          id: 'fs_expect',
           type: 'note',
-          label: 'What we expect technically',
+          label: 'What we expect',
           body: [
-            '- Comfortable on both sides: a typed backend with real HTTP API design, and a modern JavaScript frontend',
-            '- Relational databases you understand properly: schema design, indexing, and why a query got slow',
-            '- Authentication, sessions and role-based access. Student data is sensitive and a student must never see another student record',
-            '- Writing code someone else can read and change in six months, and reviewing other people code the same way',
-          ],
-        },
-        {
-          id: 'fs_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role sits in a small team, with requirements coming from the departments that use the systems.',
-            'Many of our students use mid-range Android devices on variable connections, so performance and reliability are part of the requirement rather than a finishing touch.',
+            '- Comfortable on both the server and the browser',
+            '- Relational databases at depth: schema design, indexing, and why a query is slow',
+            '- A modern JavaScript framework, and the judgement to know when not to add one',
+            '- Authentication, sessions and access control done carefully',
+            '- Code someone else can read and change months later',
           ],
         },
       ],
@@ -151,15 +141,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-frontend',
       num: '02',
       title: 'The role · Frontend Developer',
-      description: 'Everything a student or a visitor actually sees.',
+      description: 'Build the interfaces people use.',
       showIf: { field: ROLE_FIELD, equals: ['frontend'] },
       fields: [
         {
           id: 'fe_intro',
           type: 'note',
           body: [
-            "Most people form their impression of the institute from a screen before they ever visit a campus. This role covers those screens: the public site, the course pages, the application flow, and the student portal.",
-            "We are looking for someone who cares how an interface behaves on an older Android phone on a weak connection, not only how it looks on a desktop.",
+            'A frontend role focused on everything a visitor or a user sees and interacts with, from the public pages through to the screens people use regularly.',
+            'We care as much about how an interface behaves on an older phone on a weak connection as about how it looks on a desktop.',
           ],
         },
         {
@@ -167,31 +157,24 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- The public website: programme pages, faculty, results, admissions information, and the content the office needs to update without calling you',
-            '- The application and enrolment flow, which has to work for people filling it in on a phone, sometimes with patchy signal',
-            '- Student portal screens: schedules, materials, test results, fee status',
-            '- A small, consistent component set so new pages take hours rather than days',
+            '- Building pages and interfaces from designs, faithfully',
+            '- Responsive layouts that hold up across screen sizes and devices',
+            '- Forms and multi-step flows that people complete without getting stuck',
+            '- A shared component set, so new pages take hours rather than days',
+            '- Performance and accessibility as part of the work rather than a later pass',
           ],
         },
         {
-          id: 'fe_tech',
+          id: 'fe_expect',
           type: 'note',
-          label: 'What we expect technically',
+          label: 'What we expect',
           body: [
             '- Strong React, or equally strong equivalent experience you can show us',
-            '- Real responsive work. Mobile first, and tested on actual mid-range devices, not just a resized browser window',
-            '- Performance as a habit: image handling, bundle size, and knowing what makes a page feel slow',
-            '- Accessible markup. Semantic HTML, keyboard navigation and sensible contrast',
-            '- Comfortable turning a design file into an interface faithfully, and pushing back when something will not work',
-          ],
-        },
-        {
-          id: 'fe_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role works closely with design and with the developers building the systems behind the interface.',
+            '- CSS at depth: layout, responsive behaviour, and knowing why something is off',
+            '- Mobile first, tested on real devices rather than a resized browser window',
+            '- Performance as a habit: bundle size, images, and what makes a page feel slow',
+            '- Semantic, accessible markup: keyboard navigation and sensible contrast',
+            '- Comfortable building from a design file, and saying so when something will not work',
           ],
         },
       ],
@@ -202,15 +185,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-uiux',
       num: '02',
       title: 'The role · UI/UX Designer',
-      description: 'The path from first visit to enrolled student.',
+      description: 'Design how it works, not only how it looks.',
       showIf: { field: ROLE_FIELD, equals: ['uiux'] },
       fields: [
         {
           id: 'ux_intro',
           type: 'note',
           body: [
-            "Our students range from recent graduates to people returning to study after years away, with a wide range of comfort using software. A design that assumes everyone is confident with technology will lose a share of them, and we are looking for a designer who treats that as central rather than an edge case.",
-            "The role covers the full journey: the first page someone lands on, the application they fill in, and the portal they use once enrolled.",
+            'A product design role covering the whole experience: how someone moves through a flow, what each screen contains, and how it all holds together as one system.',
+            'Our users vary widely in how comfortable they are with software, so designs that assume confidence with technology are designs that lose people.',
           ],
         },
         {
@@ -218,31 +201,23 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- The admissions journey end to end, with the aim of fewer abandoned applications and fewer phone calls to the office',
-            '- Student portal screens where the information is dense and has to stay readable: timetables, results, fee statements',
-            '- A design system the developers can build from: type scale, spacing, components and states, not just finished screens',
-            '- Prototypes to test a flow before anybody writes code for it',
+            '- User flows, from the first screen through to the task being finished',
+            '- Wireframes and interactive prototypes, used to test a flow before it is built',
+            '- Interface design, including the dense screens where readability is hardest',
+            '- A design system: type scale, spacing, components and states, not only finished screens',
+            '- Handoff that developers can build from without guessing',
           ],
         },
         {
-          id: 'ux_tech',
+          id: 'ux_expect',
           type: 'note',
           label: 'What we expect',
           body: [
             '- Fluent in Figma, including components, variants and shared libraries',
-            '- You design for mobile first, because that is what our students use',
-            '- You hand off work developers can build without guessing: spacing, states, edge cases, empty and error screens',
+            '- You design mobile first',
+            '- Your handoff covers states, spacing, edge cases, and empty and error screens',
             '- You can explain a decision. We will ask why a screen is laid out the way it is, and "it looks better" is not the answer we are after',
             '- Any experience watching real users attempt a flow is a strong advantage',
-          ],
-        },
-        {
-          id: 'ux_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role covers design across the institute\'s digital products, working alongside the developers who build them.',
           ],
         },
       ],
@@ -253,15 +228,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-qa',
       num: '02',
       title: 'The role · QA Tester',
-      description: 'Catch it before a student does.',
+      description: 'Catch it before a user does.',
       showIf: { field: ROLE_FIELD, equals: ['qa'] },
       fields: [
         {
           id: 'qa_intro',
           type: 'note',
           body: [
-            "Enrolment periods concentrate a large number of users on the same forms in a short window. A broken payment step or a test that loses answers is not a minor bug in that context, it affects whether a student makes an intake at all.",
-            "We are looking for someone who tests the things that matter most when they fail, and who writes a problem up clearly enough that a developer can reproduce it first time.",
+            'A quality role: making sure what gets released actually works, and finding the problems before the people using it do.',
+            'We are looking for someone who tests the things that matter most when they fail, and who writes a problem up clearly enough that a developer can reproduce it first time.',
           ],
         },
         {
@@ -269,31 +244,23 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- The admissions and enrolment flow, start to finish, including the awkward paths: back button, double submit, dropped connection, expired session',
-            '- Payments and fee receipts, where being wrong is expensive and visible',
-            '- The mock-test platform under exam conditions: timers, submissions, a phone that dies halfway through',
-            '- Device and browser coverage that reflects what our students genuinely use, which is mostly mid-range Android',
-            '- A regression pass before each intake, so a fix in one place does not break another',
+            '- Test plans and checklists for new features',
+            '- Functional testing of complete flows, including the awkward paths: back button, double submit, dropped connection, expired session',
+            '- Payment and transaction flows, where being wrong is expensive and visible',
+            '- Device and browser coverage that reflects what people genuinely use',
+            '- Regression passes before a release, so a fix in one place does not break another',
+            '- Clear bug reports, and retesting fixes once they land',
           ],
         },
         {
-          id: 'qa_tech',
+          id: 'qa_expect',
           type: 'note',
           label: 'What we expect',
           body: [
             '- You can write a bug report a developer can act on: steps, expected, actual, environment, and how severe it really is',
             '- You think in edge cases without being handed a list',
-            '- Comfortable testing on real devices, not only on a desktop browser',
+            '- Comfortable testing on real devices, not only a desktop browser',
             '- Any experience with automated testing tools is a bonus, but clear thinking matters more to us than tooling',
-          ],
-        },
-        {
-          id: 'qa_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role is the last check before a release reaches students, and works closely with the developers building it.',
           ],
         },
       ],
@@ -304,15 +271,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-social',
       num: '02',
       title: 'The role · Social Media Executive',
-      description: 'Where most students hear of us first.',
+      description: 'Run the channels properly, not in the gaps.',
       showIf: { field: ROLE_FIELD, equals: ['social'] },
       fields: [
         {
           id: 'sm_intro',
           type: 'note',
           body: [
-            "Most people come across the institute on a phone long before they read anything formal about it. Our social channels are where that first impression is made, and this role exists to run them properly.",
-            "The work goes beyond scheduling posts. It covers planning what we publish, producing a good share of it, and responding to the questions that come back about fees, dates and eligibility.",
+            'A social media role covering what we publish, who makes it, and how we answer the people who reply.',
+            'The work goes well beyond scheduling posts. It is planning, producing a good share of the content yourself, and handling the conversations that follow.',
           ],
         },
         {
@@ -320,11 +287,12 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- A content calendar that runs ahead of the intake cycle rather than reacting to it',
-            '- Short-form video: lecture clips, faculty answering a common question, student results, campus moments',
-            '- Results and achievement announcements, presented well rather than as a plain photo',
-            '- Admissions campaigns: deadlines, open days, fee instalment news, in the weeks when it matters',
-            '- Replies. Comments, DMs and the same five questions asked a hundred different ways, answered quickly and in the right tone',
+            '- A content calendar that runs ahead of the cycle rather than reacting to it',
+            '- Short-form video, shot and cut in-house',
+            '- Graphics and written posts, in the right tone for each platform',
+            '- Campaigns around key dates and announcements',
+            '- Replies: comments, direct messages, and the same handful of questions asked many different ways',
+            '- Tracking what performed and adjusting what we publish because of it',
           ],
         },
         {
@@ -335,17 +303,8 @@ const worldTimesHiring: FormConfig = {
             '- You write well in both Urdu and English, and know which one a given post needs',
             '- You can shoot and cut short-form video yourself on a phone. Fast and good beats slow and perfect here',
             '- You know what actually performs on Facebook, Instagram, TikTok and YouTube in Pakistan, rather than what performs abroad',
-            '- You can keep a tone that is warm but still serious. We are preparing people for competitive examinations, not selling a gadget',
-            '- You can handle comment volume during admissions week without going quiet',
-          ],
-        },
-        {
-          id: 'sm_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role works alongside the admissions and marketing teams, and coordinates with faculty for content.',
+            '- You can hold a tone that is warm but still serious',
+            '- You can handle a spike in comment volume without going quiet',
           ],
         },
       ],
@@ -363,8 +322,8 @@ const worldTimesHiring: FormConfig = {
           id: 'mk_intro',
           type: 'note',
           body: [
-            "Each intake depends on the right students finding us, enquiring, and going on to enrol. This role covers both running the campaigns that make that happen and reporting on what they returned.",
-            "The role spans the full path from someone first seeing an advertisement to an enrolled student, and is measured on cost per enrolment rather than on impressions.",
+            'A digital marketing role covering the path from someone first hearing about us to them taking action, and reporting honestly on what each part of it returned.',
+            'The role is measured on results rather than on activity, so being able to show what a campaign actually produced matters more than how much of it there was.',
           ],
         },
         {
@@ -372,12 +331,12 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- Paid campaigns on Meta and Google, from targeting and copy through to budget pacing across an intake cycle',
-            '- Search: making sure that when someone searches for the exam we prepare people for, we are on the first page',
-            '- Landing pages for specific programmes and campaigns, working with the developers and designer',
-            '- The enquiry-to-enrolment funnel: where people drop out, and what to change about it',
-            '- WhatsApp and SMS campaigns, which still convert better here than email for a lot of our audience',
-            '- Reporting that management can read: enquiries, cost per enquiry, cost per enrolment, by programme',
+            '- Paid campaigns on Meta and Google, from targeting and copy through to budget pacing',
+            '- Search: making sure we are found when people look for what we offer',
+            '- Landing pages, working with the developers and the designer',
+            '- WhatsApp, SMS and email campaigns',
+            '- Conversion tracking, so we know which spend produced which result',
+            '- Reporting that someone outside marketing can read and act on',
           ],
         },
         {
@@ -387,18 +346,9 @@ const worldTimesHiring: FormConfig = {
           body: [
             '- You have run a real budget and can say what it returned, not only what it was spent on',
             '- Comfortable in Meta Ads Manager and Google Ads, and in analytics rather than only the ad dashboards',
-            '- You write copy that gets a click without overpromising. We cannot promise anyone a result in a competitive examination',
-            '- You understand this market: how Pakistani students and their parents decide on an institute, and what they are sceptical of',
+            '- You write copy that earns a click without overpromising',
+            '- You understand this market and how people here actually decide',
             '- You can tell the difference between a campaign that is failing and a landing page that is failing',
-          ],
-        },
-        {
-          id: 'mk_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'Admissions runs in cycles, so the work is seasonal: heaviest in the weeks before an intake, and more about building and measuring in between.',
           ],
         },
       ],
@@ -409,15 +359,15 @@ const worldTimesHiring: FormConfig = {
       id: 'brief-it',
       num: '02',
       title: 'The role · IT Officer',
-      description: 'Keep the campus running, especially on exam day.',
+      description: 'Keep everything running, day to day.',
       showIf: { field: ROLE_FIELD, equals: ['it'] },
       fields: [
         {
           id: 'it_intro',
           type: 'note',
           body: [
-            "Classes, examinations, staff work and admissions all depend on the computers, the network and the classroom equipment working reliably. This role keeps that running, and resolves problems quickly when they occur.",
-            "It is a practical, hands-on role based around the labs and classrooms rather than only at a desk.",
+            'A hands-on IT role: keeping the computers, the network and the equipment working, and resolving problems quickly when they do not.',
+            'It is practical work, spent among the machines and the people using them rather than only at a desk.',
           ],
         },
         {
@@ -425,13 +375,13 @@ const worldTimesHiring: FormConfig = {
           type: 'note',
           label: "What you'll work on",
           body: [
-            '- The computer labs: machines, images, software, and keeping them usable through an entire term',
-            '- Network and internet across campus, including the wifi students complain about',
-            '- Classroom equipment: projectors, screens, audio, and the recording setup we use for lecture content',
-            '- Staff accounts, email, shared drives and printers',
-            '- Backups, and confirming they can actually be restored rather than assuming',
-            '- Exam-day readiness: testing everything in advance and standing by while a mock test runs',
+            '- Computers and shared machines: setup, software, and keeping them usable over time',
+            '- Network and internet connectivity, including wifi coverage',
+            '- Presentation and audio-visual equipment',
+            '- User accounts, email, shared drives and printers',
+            '- Backups, and confirming a restore actually works rather than assuming',
             '- Hardware: diagnosing faults, arranging repairs, and advising on what to buy',
+            '- Day to day support for people who are not technical',
           ],
         },
         {
@@ -441,18 +391,9 @@ const worldTimesHiring: FormConfig = {
           body: [
             '- Solid networking basics: IP, DNS, DHCP, routers and switches, and diagnosing a connection that is slow rather than dead',
             '- Windows administration, and comfort with user accounts and permissions',
-            '- Real troubleshooting under time pressure, because a lab failing mid-examination will not wait',
+            '- Real troubleshooting under time pressure',
             '- Patience with people who are not technical. Explaining the fix matters as much as the fix',
             '- Keeping a record of what you did, so the next problem is faster to solve',
-          ],
-        },
-        {
-          id: 'it_how',
-          type: 'note',
-          label: 'How we work',
-          variant: 'callout',
-          body: [
-            'The role supports staff and students across campus, and covers both day to day issues and planned maintenance.',
           ],
         },
       ],
@@ -948,7 +889,7 @@ const worldTimesHiring: FormConfig = {
         {
           id: 'it_lab_down',
           type: 'textarea',
-          label: 'A lab of 40 machines loses internet ten minutes into a mock exam. What do you do?',
+          label: 'A room of 40 machines loses internet in the middle of something time-critical. What do you do?',
           hint: 'In order. We are reading your diagnosis and what you prioritise, not a textbook answer.',
           rows: 4,
           required: true,
