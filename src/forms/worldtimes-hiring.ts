@@ -18,7 +18,7 @@ const worldTimesHiring: FormConfig = {
   brand: 'worldtimes',
   title: 'Team Application',
   heroAccent: 'Application',
-  eyebrow: 'World Times Institute · Hiring · Development · Design · Marketing · IT',
+  eyebrow: 'Hiring · Development · Design · Marketing · IT',
   description:
     'We are hiring across development, design, social media, marketing and IT. Pick the role you are applying for and the rest of the form changes to match it.',
   client: 'World Times Institute',

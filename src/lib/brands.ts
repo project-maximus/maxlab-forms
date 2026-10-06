@@ -41,9 +41,7 @@ const BRANDS: Brand[] = [
   {
     id: 'worldtimes',
     name: 'World Times Institute',
-    // Horizontal lockup, trimmed to its artwork so `height` is exact. The
-    // supplied file reads "WORLD TIMES TECH"; the word TECH is cropped off so
-    // the form reads as the institute hiring, not a separate company.
+    // Horizontal lockup, trimmed to its artwork so `height` is exact.
     logo: { src: '/worldtimes.png', alt: 'World Times Institute', height: 44 },
     submitLabel: 'Send application',
     host: 'forms.worldtimesinstitute.com.pk',
