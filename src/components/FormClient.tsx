@@ -6,6 +6,8 @@ import { noteKey, matrixKey } from '@/lib/types';
 import { visibleSections, inputFields, progressFor, missingRequired, stripClosedAnswers } from '@/lib/form-logic';
 import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
+import { brandById } from '@/lib/brands';
+import BrandMark from '@/components/BrandMark';
 import SubmitModal from './SubmitModal';
 import Toast from './Toast';
 import clsx from 'clsx';
@@ -833,6 +835,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
   }
 
   const { total: totalFields, pct: pctAnswered } = progressFor(form, values);
+  const brand = brandById(form.brand);
 
   return (
     <>
@@ -842,7 +845,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
             and the sections' left column share one left edge. */}
         <div className="max-w-5xl mx-auto px-5 sm:px-8">
         <div className="pt-16 pb-2 max-w-2xl">
-          <Logo size={34} />
+          <BrandMark brand={brand} />
 
           {form.eyebrow && (
             <div className="mt-9 font-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-4">
@@ -1016,6 +1019,11 @@ export default function FormClient({ form }: { form: FormConfig }) {
                   ) : part
                 )}
               </p>
+              {brand.credit && (
+                <p className="mt-2.5 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-ink-4">
+                  {brand.credit}
+                </p>
+              )}
             </div>
           ); })()}
         </div>
@@ -1063,7 +1071,7 @@ export default function FormClient({ form }: { form: FormConfig }) {
                     : 'bg-brand-red text-white hover:bg-brand-red-dark'
                 )}
                 title={blockers.length > 0 ? `${blockers.length} required question${blockers.length === 1 ? '' : 's'} still need an answer` : undefined}>
-                Send to Maxxlab
+                {brand.submitLabel}
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>

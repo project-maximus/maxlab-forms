@@ -54,7 +54,7 @@ export function defaultState(): ContractState {
 
 export interface Computed {
   oneTime: number;
-  /** Monthly total for months 1–3 */
+  /** Monthly total for months 1 to 3 */
   launch: number;
   /** Monthly total from month 4 */
   after: number;
@@ -73,8 +73,8 @@ export function compute(s: ContractState): Computed {
     after,
     deposit: PRICE.build / 2,
     monthlyText: s.minilabs
-      ? `Website Growth + Minilabs: ${mo(launch)} for months 1–3, then ${mo(after)}`
-      : `Website Growth: ${mo(launch)} for months 1–3, then ${mo(after)}`,
+      ? `Website Growth + Minilabs: ${mo(launch)} for months 1 to 3, then ${mo(after)}`
+      : `Website Growth: ${mo(launch)} for months 1 to 3, then ${mo(after)}`,
   };
 }
 
@@ -91,9 +91,9 @@ export const SECTIONS = [
 ] as const;
 
 export const WEBSITE_SCOPE: [string, string][] = [
-  ['Discovery and keyword plan', 'Kickoff call. We record your starting numbers (rankings, speed, calls, bookings) and agree a list of about 15–20 searches you want to win.'],
+  ['Discovery and keyword plan', 'Kickoff call. We record your starting numbers (rankings, speed, calls, bookings) and agree a list of about 15 to 20 searches you want to win.'],
   ['Fresh, modern design', 'New premium look built for phones first: real fleet photos, clean logo treatment, your 4.9★ Google rating and reviews near the top. Pages: home, fleet, flat rates, airports (Pearson, Billy Bishop, Hamilton, Buffalo), services, corporate, weddings and events, Niagara tours, FAQ, about, contact. Up to 3 rounds of design changes.'],
-  ['Speed', 'Fast hosting setup, compressed images and clean code. Target: under 2–3 seconds on a phone (today 7.6 s).'],
+  ['Speed', 'Fast hosting setup, compressed images and clean code. Target: under 2 to 3 seconds on a phone (today 7.6 s).'],
   ['All current errors fixed', 'Stray "?" heading, broken sentences, placeholder service cards, phone number format, page descriptions, "page not found" handling, blocked zoom on phones, business details for Google.'],
   ['5 new keyword pages', 'New area and airport pages chosen from the keyword plan (for example Mississauga, Brampton, Markham, Vaughan, wedding limo). Existing city pages and blog moved over and improved, with redirects so current rankings are kept.'],
   ['Clear flat-rate prices', 'Flat rates for your main routes shown clearly on the site (you supply the rates).'],
@@ -132,8 +132,8 @@ export const LATER: string[] = [
 /** `ml` marks text that only applies when the booking system is included. */
 export const TIMELINE: { when: string; what: string; ml?: string; you: string }[] = [
   { when: 'Week 1', what: 'Kickoff, starting numbers, keyword plan', you: 'Share logins, flat rates and fleet photos' },
-  { when: 'Weeks 2–3', what: 'Design of the new website', you: 'Review and give feedback' },
-  { when: 'Weeks 4–5', what: 'Build, new pages, booking form, tracking, Google profile and listings clean-up', you: 'Check the preview site' },
+  { when: 'Weeks 2 to 3', what: 'Design of the new website', you: 'Review and give feedback' },
+  { when: 'Weeks 4 to 5', what: 'Build, new pages, booking form, tracking, Google profile and listings clean-up', you: 'Check the preview site' },
   { when: 'Week 6', what: 'Launch.', ml: 'Minilabs Booking System goes live.', you: 'Short training on your phone' },
   { when: 'Every month', what: 'Website Growth work and your monthly report', you: 'Read the report, tell us what you need' },
 ];
@@ -169,7 +169,7 @@ export function summaryText(s: ContractState): string {
     `${CLIENT} · Proposal and Service Agreement · ${REF}`,
     `Plan: ${s.minilabs ? 'Website + Website Growth + Minilabs Booking System' : 'Website + Website Growth (no Minilabs)'}`,
     `One-time: ${cad(C.oneTime)} (50% on signing, 50% at launch)`,
-    `Monthly, months 1–3: ${mo(C.launch)}`,
+    `Monthly, months 1 to 3: ${mo(C.launch)}`,
     `Monthly, from month 4: ${mo(C.after)}`,
     `Minimum term: ${PRICE.launchMonths} months, then month to month (30 days' notice)`,
     `Valid until: ${longDate(VALID_UNTIL)}`,

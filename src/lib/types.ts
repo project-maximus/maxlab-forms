@@ -151,6 +151,11 @@ export interface FormConfig {
   eyebrow?: string;
   client: string;
   /**
+   * Which brand's logo, submit wording and footer credit this form wears.
+   * Defaults to Maxxlab. See src/lib/brands.ts.
+   */
+  brand?: string;
+  /**
    * 'steps' walks one section at a time with back/next navigation;
    * 'stacked' (default) renders every section down the page.
    * Both lay a section out as copy on the left, fields on the right.

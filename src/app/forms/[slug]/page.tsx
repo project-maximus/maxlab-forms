@@ -1,31 +1,21 @@
 import { notFound } from 'next/navigation';
-import { getFormBySlug } from '@/forms';
 import FormClient from '@/components/FormClient';
-import NPSISelectorClient from '@/components/npsi-selector/NPSISelectorClient';
-import NooraniContractClient from '@/components/noorani/NooraniContractClient';
-import AirportLimoContractClient from '@/components/airport-limo/AirportLimoContractClient';
+import { formForRequest, metadataFor } from '@/lib/form-access';
 import type { Metadata } from 'next';
+
+// The declarative forms. The three bespoke contracts live in their own route
+// segments beside this one, so their code never enters this shared chunk.
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { slug } = await params;
-  const form = getFormBySlug(slug);
-  if (!form) return {};
-  return {
-    title: `${form.title} — Maxxlab`,
-    description: form.description,
-  };
+  return metadataFor((await params).slug);
 }
 
 export default async function FormPage({ params }: Props) {
-  const { slug } = await params;
-  const form = getFormBySlug(slug);
+  const form = await formForRequest((await params).slug);
   if (!form) notFound();
-  if (slug === 'npsi-direction-selector') return <NPSISelectorClient form={form} />;
-  if (slug === 'noorani-contract') return <NooraniContractClient form={form} />;
-  if (slug === 'airport-limo-contract') return <AirportLimoContractClient form={form} />;
   return <FormClient form={form} />;
 }

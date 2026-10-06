@@ -66,6 +66,40 @@ function Section({ id, n, title, note, active, children }: {
 const Sub = ({ children, className }: { children: React.ReactNode; className?: string }) => (
   <h3 className={clsx('font-mono text-[10px] uppercase tracking-[0.16em] text-brand-ink-4 pb-2 border-b border-brand-line', className)}>{children}</h3>
 );
+/**
+ * Collapsible scope panel. The trigger keeps the `Sub` heading's styling so the
+ * section reads the same as before, just foldable. The body stays in the DOM and
+ * print re-reveals it, because a printed contract must carry the full scope.
+ */
+function Panel({
+  title, open, onToggle, className, children,
+}: {
+  title: React.ReactNode; open: boolean; onToggle: () => void;
+  className?: string; children: React.ReactNode;
+}) {
+  return (
+    <div className={clsx('print-break-avoid', className)}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={onToggle}
+        className="w-full flex items-center gap-3 text-left pb-2 border-b border-brand-line group"
+      >
+        <span className="flex-1 font-mono text-[10px] uppercase tracking-[0.16em] text-brand-ink-4 group-hover:text-brand-ink-3 transition-colors">
+          {title}
+        </span>
+        <svg
+          className={clsx('w-3.5 h-3.5 flex-shrink-0 text-brand-ink-4 transition-transform duration-200 no-print', open && 'rotate-180')}
+          fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      <div className={clsx(!open && 'hidden print:block')}>{children}</div>
+    </div>
+  );
+}
+
 const P = ({ children, muted }: { children: React.ReactNode; muted?: boolean }) => (
   <p className={clsx('mb-2.5 leading-[1.65]', muted ? 'text-[13px] text-brand-ink-4' : 'text-[14.5px] text-brand-ink-2')}>{children}</p>
 );
@@ -183,6 +217,12 @@ function SignedColumn({ who, name, title, date, sig, stamp }: { who: string; nam
 export default function AirportLimoContractClient({ form }: { form: FormConfig }) {
   const [S, setS] = useState<ContractState>(defaultState);
   const [step, setStep] = useState(0);
+  /** Scope panels that are open. 'a' leads so the section is never a blank list. */
+  const [openScope, setOpenScope] = useState<string[]>(['a']);
+  const SCOPE_KEYS = ['a', 'b', 'c', 'later'];
+  const allScopeOpen = SCOPE_KEYS.every(k => openScope.includes(k));
+  const toggleScope = (k: string) =>
+    setOpenScope(openScope.includes(k) ? openScope.filter(x => x !== k) : [...openScope, k]);
   const stepTopRef = useRef<HTMLDivElement | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -245,7 +285,7 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
       // can report it without re-computing anything.
       const data: Record<string, string> = {
         plan: on ? 'Website + Website Growth + Minilabs Booking System' : 'Website + Website Growth only',
-        minilabs: on ? `Included · ${mo(PRICE.minilabsLaunch)} for months 1–3, then ${mo(PRICE.minilabsRegular)} · setup waived` : 'Not included',
+        minilabs: on ? `Included · ${mo(PRICE.minilabsLaunch)} for months 1 to 3, then ${mo(PRICE.minilabsRegular)} · setup waived` : 'Not included',
         one_time: cad(C.oneTime),
         monthly_launch: mo(C.launch),
         monthly_after: mo(C.after),
@@ -390,28 +430,42 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
             active={step === 1} id="scope" n="02" title="Scope of work"
             note="Exactly what is delivered under this agreement, part by part."
           >
-            <Sub>A · New website · one-time</Sub>
-            <DocTable
-              className="!mt-0"
-              head={['Deliverable', 'What is included']}
-              widths={[32, 68]}
-              rows={WEBSITE_SCOPE.map(([k, v]) => ({ cells: [{ b: k }, v] }))}
-            />
-
-            <Sub className="mt-10">B · Website Growth · monthly</Sub>
-            <div className="mt-3">
-              <P>
-                The monthly work that helps your website and Google profile rank higher over time. We promise the work
-                and the reporting; rankings are tracked, not guaranteed.
-              </P>
+            <div className="flex justify-end -mt-1 mb-2 no-print">
+              <button
+                type="button"
+                onClick={() => setOpenScope(allScopeOpen ? [] : SCOPE_KEYS)}
+                className="text-[12px] font-medium text-brand-ink-3 hover:text-brand-ink transition-colors"
+              >
+                {allScopeOpen ? 'Collapse all' : 'Expand all'}
+              </button>
             </div>
-            <DocTable head={['Every month']} rows={GROWTH_SCOPE.map(x => ({ cells: [x] }))} />
-            <P muted>Review requests and review replies are handled by the Minilabs Booking System, so they are not charged twice.</P>
 
-            <div className={clsx('transition-opacity', dim)}>
-              <Sub className="mt-10">
-                C · Minilabs Booking System · monthly{!on && ' · not included'}
-              </Sub>
+            <Panel title="A · New website · one-time" open={openScope.includes('a')} onToggle={() => toggleScope('a')}>
+              <DocTable
+                className="!mt-0"
+                head={['Deliverable', 'What is included']}
+                widths={[32, 68]}
+                rows={WEBSITE_SCOPE.map(([k, v]) => ({ cells: [{ b: k }, v] }))}
+              />
+            </Panel>
+
+            <Panel className="mt-8" title="B · Website Growth · monthly" open={openScope.includes('b')} onToggle={() => toggleScope('b')}>
+              <div className="mt-3">
+                <P>
+                  The monthly work that helps your website and Google profile rank higher over time. We promise the work
+                  and the reporting; rankings are tracked, not guaranteed.
+                </P>
+              </div>
+              <DocTable head={['Every month']} rows={GROWTH_SCOPE.map(x => ({ cells: [x] }))} />
+              <P muted>Review requests and review replies are handled by the Minilabs Booking System, so they are not charged twice.</P>
+            </Panel>
+
+            <Panel
+              className={clsx('mt-8 transition-opacity', dim)}
+              title={<>C · Minilabs Booking System · monthly{!on && ' · not included'}</>}
+              open={openScope.includes('c')}
+              onToggle={() => toggleScope('c')}
+            >
               <div className="mt-3"><P>Runs behind the website and on your phone. Goes live on launch day.</P></div>
               <DocTable
                 head={['What is set up', 'What it does for you']}
@@ -419,16 +473,17 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
                 rows={MINILABS_SCOPE.map(([k, v]) => ({ cells: [{ b: k }, v] }))}
               />
               <P muted>Text messages and phone calls through the system are included for normal business use.</P>
-            </div>
+            </Panel>
 
-            <Sub className="mt-10">Available later · not in this agreement</Sub>
-            <ul className="mt-3 space-y-1.5">
-              {LATER.map(x => (
-                <li key={x} className="flex gap-2.5 text-[14.5px] text-brand-ink-2 leading-relaxed">
-                  <span className="mt-[10px] w-[3px] h-[3px] rounded-full bg-brand-ink-4 flex-shrink-0" />{x}
-                </li>
-              ))}
-            </ul>
+            <Panel className="mt-8" title="Available later · not in this agreement" open={openScope.includes('later')} onToggle={() => toggleScope('later')}>
+              <ul className="mt-3 space-y-1.5">
+                {LATER.map(x => (
+                  <li key={x} className="flex gap-2.5 text-[14.5px] text-brand-ink-2 leading-relaxed">
+                    <span className="mt-[10px] w-[3px] h-[3px] rounded-full bg-brand-ink-4 flex-shrink-0" />{x}
+                  </li>
+                ))}
+              </ul>
+            </Panel>
           </Section>
 
           <Section
@@ -447,9 +502,9 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
                 { cells: ['C · Minilabs setup (one-time)', { r: <Strike>{cad(PRICE.minilabsSetup)}</Strike> }, { r: <b className="font-semibold text-brand-ink">Waived</b> }], off: !on },
                 on
                   ? { cells: ['B · Website Growth (monthly), bundled with Minilabs', { r: <Strike>{mo(PRICE.growthRegular)}</Strike> }, { r: <b className="font-semibold text-brand-ink">{mo(PRICE.growthBundle)}</b> }] }
-                  : { cells: ['B · Website Growth (monthly), months 1–3', { r: <Strike>{mo(PRICE.growthRegular)}</Strike> }, { r: <b className="font-semibold text-brand-ink">{mo(PRICE.growthBundle)}</b> }] },
+                  : { cells: ['B · Website Growth (monthly), months 1 to 3', { r: <Strike>{mo(PRICE.growthRegular)}</Strike> }, { r: <b className="font-semibold text-brand-ink">{mo(PRICE.growthBundle)}</b> }] },
                 ...(on ? [] : [{ cells: ['B · Website Growth (monthly), from month 4', { r: mo(PRICE.growthRegular) }, { r: mo(PRICE.growthRegular) }] as Cell[] }]),
-                { cells: ['C · Minilabs Booking System (monthly), months 1–3', { r: <Strike>{mo(PRICE.minilabsRegular)}</Strike> }, { r: <b className="font-semibold text-brand-ink">{mo(PRICE.minilabsLaunch)}</b> }], off: !on },
+                { cells: ['C · Minilabs Booking System (monthly), months 1 to 3', { r: <Strike>{mo(PRICE.minilabsRegular)}</Strike> }, { r: <b className="font-semibold text-brand-ink">{mo(PRICE.minilabsLaunch)}</b> }], off: !on },
                 { cells: ['C · Minilabs Booking System (monthly), from month 4', { r: mo(PRICE.minilabsRegular) }, { r: mo(PRICE.minilabsRegular) }], off: !on },
               ]}
             />
@@ -457,7 +512,7 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
             <dl className="grid grid-cols-3 gap-5 sm:gap-8 mt-9 mb-7 print-break-avoid">
               {[
                 ['One-time', cad(C.oneTime)],
-                ['Monthly, months 1–3', mo(C.launch)],
+                ['Monthly, months 1 to 3', mo(C.launch)],
                 ['Monthly, from month 4', mo(C.after)],
               ].map(([k, v]) => (
                 <div key={k} className="border-t-2 border-brand-ink pt-3 flex flex-col justify-between">
@@ -673,7 +728,7 @@ export default function AirportLimoContractClient({ form }: { form: FormConfig }
                   {mo(C.launch)} <span className="text-brand-ink-4 text-[12.5px] font-normal">then {mo(C.after)}</span>
                 </div>
                 <div className="hidden sm:block font-mono text-[10px] uppercase tracking-[0.12em] text-brand-ink-4 mt-1.5">
-                  Months 1–3 · {cad(C.oneTime)} one-time · {on ? 'with Minilabs' : 'website only'}
+                  Months 1 to 3 · {cad(C.oneTime)} one-time · {on ? 'with Minilabs' : 'website only'}
                 </div>
               </>
             ) : (

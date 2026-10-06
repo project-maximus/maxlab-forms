@@ -28,7 +28,7 @@ const airportLimoContract: FormConfig = {
         text('plan', 'Plan'),
         text('minilabs', 'Minilabs Booking System'),
         text('one_time', 'One-time, website build'),
-        text('monthly_launch', 'Monthly, months 1–3'),
+        text('monthly_launch', 'Monthly, months 1 to 3'),
         text('monthly_after', 'Monthly, from month 4'),
         text('payment_schedule', 'Payment schedule'),
         text('minimum_term', 'Minimum term'),
