@@ -95,6 +95,13 @@ export default async function HomePage() {
                   </div>
                 </div>
                 <div className="px-5 py-3 bg-brand-bg border-t border-brand-line/60 flex items-center gap-4 text-xs text-brand-ink-3">
+                  <Link
+                    href={`/admin/${form.slug}`}
+                    className="font-medium text-brand-ink-2 hover:text-brand-red transition-colors"
+                  >
+                    Submissions
+                  </Link>
+                  <span>·</span>
                   <span>{form.sections.length} sections</span>
                   <span>·</span>
                   <span>

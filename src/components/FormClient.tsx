@@ -6,7 +6,7 @@ import { noteKey, matrixKey } from '@/lib/types';
 import { visibleSections, inputFields, progressFor, missingRequired, stripClosedAnswers } from '@/lib/form-logic';
 import FaceIcon, { isFaceName } from './FaceIcon';
 import Logo from './Logo';
-import { brandById } from '@/lib/brands';
+import { brandById, brandNotifies } from '@/lib/brands';
 import BrandMark from '@/components/BrandMark';
 import SubmitModal from './SubmitModal';
 import Toast from './Toast';
@@ -679,6 +679,11 @@ export default function FormClient({ form }: { form: FormConfig }) {
   });
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  // Set once a submission is stored, on forms that send no confirmation email.
+  const [receipt, setReceipt] = useState<{ id: string } | null>(null);
+  // Stable across retries of the same submission, so a dropped response or a
+  // second click resolves to the row already stored instead of a duplicate.
+  const attemptId = useRef<string | null>(null);
   const [toast, setToast] = useState<{ msg: string; error?: boolean } | null>(null);
   const [step, setStep] = useState(0);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -815,18 +820,31 @@ export default function FormClient({ form }: { form: FormConfig }) {
       return;
     }
     setSubmitting(true);
+    if (!attemptId.current) {
+      attemptId.current =
+        typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    }
     try {
       const res = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ formSlug: form.slug, senderName: senderName.trim(), senderEmail: senderEmail.trim(), senderNote: senderNote.trim(), data: values }),
+        body: JSON.stringify({ formSlug: form.slug, senderName: senderName.trim(), senderEmail: senderEmail.trim(), senderNote: senderNote.trim(), data: values, clientId: attemptId.current }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json.error ?? 'Submission failed');
       setModalOpen(false);
-      showToast('Submitted! Check your inbox for confirmation.');
-      window.open(`/view/${json.id}`, '_blank');
+      attemptId.current = null;
       try { localStorage.removeItem(STORAGE_KEY); sessionStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+      if (brandNotifies(brand)) {
+        showToast('Submitted! Check your inbox for confirmation.');
+        window.open(`/view/${json.id}`, '_blank');
+      } else {
+        // No confirmation email on this form, and /view is not served on a
+        // client's own domain, so the receipt has to be shown here.
+        setReceipt({ id: json.id });
+      }
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Submission failed. Please try again.', true);
     } finally {
@@ -836,6 +854,46 @@ export default function FormClient({ form }: { form: FormConfig }) {
 
   const { total: totalFields, pct: pctAnswered } = progressFor(form, values);
   const brand = brandById(form.brand);
+
+  // A submission on a form that sends no confirmation email ends here: the
+  // applicant needs something that tells them it worked and gives them a
+  // reference they can quote.
+  if (receipt) {
+    return (
+      <div className="bg-white min-h-screen">
+        <div className="max-w-5xl mx-auto px-5 sm:px-8">
+          <div className="pt-16 max-w-2xl">
+            <BrandMark brand={brand} />
+            <div className="mt-16 pb-24">
+              <div className="w-10 h-10 rounded-full bg-brand-ink flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <h1 className="mt-7 text-[38px] sm:text-[44px] leading-[1.06] tracking-[-0.032em] font-medium text-brand-ink">
+                Application received
+              </h1>
+              <p className="mt-5 text-[15px] leading-[1.65] text-brand-ink-3">
+                Thank you. Your application has been recorded and the team will review it.
+                There is nothing further for you to do.
+              </p>
+              <div className="mt-9 pt-6 border-t border-brand-line">
+                <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-brand-ink-4">
+                  Your reference
+                </div>
+                <div className="mt-2 font-mono text-[13px] text-brand-ink-2 break-all">
+                  {receipt.id}
+                </div>
+                <p className="mt-3 text-[13px] text-brand-ink-4">
+                  Keep this if you need to ask about your application later.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>

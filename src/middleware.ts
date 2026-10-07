@@ -9,8 +9,8 @@ import { brandForHost } from '@/lib/brands';
 //    else. The dashboard, the submission viewer and the proposal pages are all
 //    404 there, so a client domain can never surface another client's work.
 //
-// 2. On Maxxlab's own domains, password-gate the dashboard homepage only.
-//    Individual form links (/forms/[slug]), client presentation links
+// 2. On Maxxlab's own domains, password-gate the dashboard and the admin
+//    panel. Individual form links (/forms/[slug]), client presentation links
 //    (/proposals/...) and submission view links (/view/[id]) stay open, since
 //    those are the "shared links" people are meant to open directly.
 
@@ -32,7 +32,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  if (pathname !== '/') return NextResponse.next();
+  // Password-gate the dashboard and the admin panel. Everything else on a
+  // Maxxlab domain is a link meant to be opened directly.
+  const guarded =
+    pathname === '/' ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/api/admin');
+  if (!guarded) return NextResponse.next();
 
   const user = process.env.ADMIN_USER;
   const pass = process.env.ADMIN_PASSWORD;

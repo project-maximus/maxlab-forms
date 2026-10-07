@@ -24,6 +24,14 @@ export interface Brand {
   /** Dedicated hostname. Requests on it resolve only this brand's forms. */
   host?: string;
   /**
+   * Whether a submission sends notification emails (one to the submitter, one
+   * to Maxxlab). Defaults to true. High-volume forms turn this off: a public
+   * hiring form can take thousands of applications, which is both an email
+   * deliverability risk and a slow, failure-prone step in the request path.
+   * Submissions are read in the admin panel instead.
+   */
+  notify?: boolean;
+  /**
    * Where the bare hostname should land. Someone who types the domain without
    * a path gets sent here rather than a 404. Leave unset to 404 the root.
    */
@@ -45,9 +53,15 @@ const BRANDS: Brand[] = [
     logo: { src: '/worldtimes.png', alt: 'World Times Institute', height: 44 },
     submitLabel: 'Send application',
     host: 'forms.worldtimesinstitute.com.pk',
+    notify: false,
     home: '/forms/worldtimes-hiring',
   },
 ];
+
+/** Notifications are on unless a brand opts out. */
+export function brandNotifies(brand: Brand): boolean {
+  return brand.notify !== false;
+}
 
 export function brandById(id: string | undefined): Brand {
   if (!id) return MAXXLAB;

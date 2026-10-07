@@ -4,6 +4,7 @@ import { saveSubmission } from '@/lib/storage';
 import { sendSubmissionEmails } from '@/lib/email';
 import { getFormBySlug } from '@/forms';
 import { closedAnswers } from '@/lib/form-logic';
+import { brandById, brandNotifies } from '@/lib/brands';
 import type { FormSubmission } from '@/lib/types';
 
 // Cross-site forms (e.g. pricing.maxxlab.tech) post here directly, so this
@@ -33,12 +34,14 @@ export async function POST(req: NextRequest) {
   const headers = corsHeaders(req);
   try {
     const body = await req.json();
-    const { formSlug, senderName, senderEmail, senderNote, data } = body as {
+    const { formSlug, senderName, senderEmail, senderNote, data, clientId } = body as {
       formSlug: string;
       senderName: string;
       senderEmail: string;
       senderNote: string;
       data: Record<string, string | string[]>;
+      /** Stable across retries of the same submission. See saveSubmission. */
+      clientId?: string;
     };
 
     // Validate required fields
@@ -77,18 +80,28 @@ export async function POST(req: NextRequest) {
       data: data ?? {},
     };
 
-    // Save to database first — email failure should not block submission
-    await saveSubmission(submission);
+    // The database write is the whole promise we make to the person submitting.
+    // Nothing else happens before it, and the response only reports success
+    // once it has returned.
+    const saved = await saveSubmission(submission, clientId);
 
-    // Send emails (non-blocking on failure)
-    const emailResult = await sendSubmissionEmails(submission);
-    if (!emailResult.ok) {
-      console.warn('[submit] Email send failed:', emailResult.error);
+    // High-volume forms opt out of email entirely. Two messages per submission
+    // across thousands of applicants is a deliverability risk and an extra
+    // failure point in the request path, so those are read in the admin panel.
+    const brand = brandById(form.brand);
+    let emailSent = false;
+    if (brandNotifies(brand) && !saved.duplicate) {
+      const emailResult = await sendSubmissionEmails(submission);
+      emailSent = emailResult.ok;
+      if (!emailResult.ok) {
+        console.warn('[submit] Email send failed:', emailResult.error);
+      }
     }
 
     return NextResponse.json({
-      id: submission.id,
-      emailSent: emailResult.ok,
+      id: saved.id,
+      emailSent,
+      duplicate: saved.duplicate,
     }, { status: 201, headers });
 
   } catch (err) {

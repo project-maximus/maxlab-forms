@@ -187,4 +187,6 @@ export interface SubmissionIndexEntry {
   senderName: string;
   senderEmail: string;
   submittedAt: string;
+  /** Only loaded where the list needs to show an answer, e.g. the admin panel. */
+  data?: Record<string, string | string[] | FileValue[]>;
 }

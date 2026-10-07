@@ -23,6 +23,25 @@ export async function createTable() {
     CREATE INDEX IF NOT EXISTS idx_submissions_submitted_at
     ON submissions (submitted_at DESC)
   `;
+
+  // ── Added later, so these are written to be safe to re-run ────────────────
+
+  // A client-generated id, stable across retries of the same submission. With
+  // the unique index below it makes submitting idempotent: a network retry or a
+  // double click inserts nothing new instead of creating a duplicate applicant.
+  await sql`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS client_id TEXT`;
+  await sql`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_client_id
+    ON submissions (client_id)
+    WHERE client_id IS NOT NULL
+  `;
+
+  // The admin panel pages through one form at a time. Without this, every page
+  // of a 5000-row table is a sequential scan.
+  await sql`
+    CREATE INDEX IF NOT EXISTS idx_submissions_form_slug_submitted_at
+    ON submissions (form_slug, submitted_at DESC)
+  `;
 }
 
 // ── Seed existing JSON submissions into the database ──────────────────────────
