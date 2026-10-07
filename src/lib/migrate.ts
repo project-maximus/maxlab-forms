@@ -36,6 +36,11 @@ export async function createTable() {
     WHERE client_id IS NOT NULL
   `;
 
+  // Archiving rather than deleting. A removed submission keeps its row and is
+  // hidden from the panel, so a misclick on a real applicant can be undone.
+  // Purging for good is a separate, explicit action.
+  await sql`ALTER TABLE submissions ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ`;
+
   // The admin panel pages through one form at a time. Without this, every page
   // of a 5000-row table is a sequential scan.
   await sql`

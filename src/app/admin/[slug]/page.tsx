@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getFormBySlug } from '@/forms';
 import { brandById } from '@/lib/brands';
-import { listSubmissionsForForm, countByField } from '@/lib/storage';
+import { listSubmissionsForForm, countByField, countArchived } from '@/lib/storage';
+import RowActions from '@/components/admin/RowActions';
 import { optionLabel } from '@/lib/form-logic';
 import type { FormField, SubmissionIndexEntry } from '@/lib/types';
 
@@ -16,7 +17,7 @@ const PER_PAGE = 50;
 
 interface Props {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ page?: string; q?: string; role?: string }>;
+  searchParams: Promise<{ page?: string; q?: string; role?: string; archived?: string }>;
 }
 
 function fmt(iso: string) {
@@ -40,6 +41,7 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
   const page = Math.max(parseInt(sp.page ?? '1', 10) || 1, 1);
   const q = (sp.q ?? '').trim();
   const role = (sp.role ?? '').trim();
+  const archived = sp.archived === '1';
 
   const roleFld = roleField(form.sections.flatMap(s => s.fields));
 
@@ -48,15 +50,18 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
   let rows: SubmissionIndexEntry[] = [];
   let total = 0;
   let roleCounts: Record<string, number> = {};
+  let archivedCount = 0;
   let dbError: string | null = null;
   try {
-    const [page1, counts] = await Promise.all([
-      listSubmissionsForForm(slug, { limit: PER_PAGE, offset: (page - 1) * PER_PAGE, search: q, role }),
+    const [page1, counts, binned] = await Promise.all([
+      listSubmissionsForForm(slug, { limit: PER_PAGE, offset: (page - 1) * PER_PAGE, search: q, role, archived }),
       roleFld ? countByField(slug, roleFld.id) : Promise.resolve({} as Record<string, number>),
+      countArchived(slug),
     ]);
     rows = page1.rows;
     total = page1.total;
     roleCounts = counts;
+    archivedCount = binned;
   } catch (err) {
     console.error('[admin] Query failed:', err);
     dbError = err instanceof Error ? err.message : 'Could not reach the database.';
@@ -67,6 +72,7 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
     const p = new URLSearchParams();
     if (q) p.set('q', q);
     if (role) p.set('role', role);
+    if (archived) p.set('archived', '1');
     for (const [k, v] of Object.entries(over)) { if (v) p.set(k, v); else p.delete(k); }
     const str = p.toString();
     return str ? `?${str}` : '';
@@ -93,6 +99,16 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
               >
                 Download CSV
               </a>
+              <Link
+                href={archived ? `/admin/${slug}` : `/admin/${slug}?archived=1`}
+                className={`px-3.5 py-2 text-[12px] font-medium border rounded-md transition-colors ${
+                  archived
+                    ? 'border-brand-ink bg-brand-ink text-white'
+                    : 'border-brand-line bg-white text-brand-ink-2 hover:border-brand-ink'
+                }`}
+              >
+                Deleted{archivedCount > 0 ? ` (${archivedCount})` : ''}
+              </Link>
               <Link
                 href="/"
                 className="px-3.5 py-2 text-[12px] font-medium text-brand-ink-2 border border-brand-line rounded-md hover:border-brand-ink transition-colors bg-white"
@@ -167,7 +183,7 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
         <div className="bg-white border border-brand-line rounded-lg overflow-hidden">
           <div className="px-5 py-3 border-b border-brand-line flex items-center justify-between">
             <span className="font-mono text-[11px] text-brand-ink-3 tabular-nums">
-              {total} submission{total === 1 ? '' : 's'}
+              {archived ? 'Deleted: ' : ''}{total} submission{total === 1 ? '' : 's'}
               {(q || role) && ' matching'}
             </span>
             <span className="font-mono text-[11px] text-brand-ink-4 tabular-nums">
@@ -177,7 +193,7 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
 
           {rows.length === 0 ? (
             <div className="px-5 py-16 text-center text-[13px] text-brand-ink-4">
-              Nothing here yet.
+              {archived ? 'Nothing deleted.' : 'Nothing here yet.'}
             </div>
           ) : (
             <table className="w-full text-[13px]">
@@ -206,9 +222,12 @@ export default async function AdminFormPage({ params, searchParams }: Props) {
                       {fmt(r.submittedAt)}
                     </td>
                     <td className="px-5 py-3 text-right whitespace-nowrap">
-                      <Link href={`/view/${r.id}`} className="text-brand-red hover:text-brand-red-dark font-medium">
-                        Open
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        <Link href={`/view/${r.id}`} className="text-brand-ink-2 hover:text-brand-ink font-medium">
+                          Open
+                        </Link>
+                        <RowActions id={r.id} archived={archived} />
+                      </div>
                     </td>
                   </tr>
                 ))}

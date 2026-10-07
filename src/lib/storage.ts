@@ -110,7 +110,7 @@ export interface SubmissionPage {
 
 export async function listSubmissionsForForm(
   formSlug: string,
-  opts: { limit?: number; offset?: number; search?: string; role?: string } = {},
+  opts: { limit?: number; offset?: number; search?: string; role?: string; archived?: boolean } = {},
 ): Promise<SubmissionPage> {
   const sql = getDb();
   const limit = Math.min(Math.max(opts.limit ?? 50, 1), 200);
@@ -118,13 +118,15 @@ export async function listSubmissionsForForm(
   const search = opts.search?.trim() ?? '';
   const like = `%${search}%`;
   const role = opts.role?.trim() ?? '';
+  const archived = opts.archived === true;
 
   // Both filters are optional, expressed as "no filter given, or it matches",
   // so this stays one statement instead of four hand-written variants.
   const rows = await sql`
-    SELECT id, form_slug, form_title, sender_name, sender_email, submitted_at, data
+    SELECT id, form_slug, form_title, sender_name, sender_email, submitted_at, data, deleted_at
     FROM submissions
     WHERE form_slug = ${formSlug}
+      AND (${archived}::boolean = (deleted_at IS NOT NULL))
       AND (${search}::text = '' OR sender_name ILIKE ${like} OR sender_email ILIKE ${like})
       AND (${role}::text = '' OR data ->> 'role' = ${role})
     ORDER BY submitted_at DESC
@@ -135,6 +137,7 @@ export async function listSubmissionsForForm(
     SELECT COUNT(*)::int AS n
     FROM submissions
     WHERE form_slug = ${formSlug}
+      AND (${archived}::boolean = (deleted_at IS NOT NULL))
       AND (${search}::text = '' OR sender_name ILIKE ${like} OR sender_email ILIKE ${like})
       AND (${role}::text = '' OR data ->> 'role' = ${role})
   ` as Row[];
@@ -162,7 +165,7 @@ export async function countByField(
   const rows = await sql`
     SELECT data ->> ${fieldId} AS value, COUNT(*)::int AS n
     FROM submissions
-    WHERE form_slug = ${formSlug}
+    WHERE form_slug = ${formSlug} AND deleted_at IS NULL
     GROUP BY 1
   ` as Row[];
   const out: Record<string, number> = {};
@@ -184,7 +187,7 @@ export async function* iterateSubmissionsForForm(
     const rows = await sql`
       SELECT id, form_slug, form_title, sender_name, sender_email, sender_note, submitted_at, data
       FROM submissions
-      WHERE form_slug = ${formSlug}
+      WHERE form_slug = ${formSlug} AND deleted_at IS NULL
       ORDER BY submitted_at DESC
       LIMIT ${batch} OFFSET ${offset}
     ` as Row[];
@@ -202,4 +205,49 @@ export async function* iterateSubmissionsForForm(
     if (rows.length < batch) return;
     offset += batch;
   }
+}
+
+/** How many archived submissions a form has, for the panel's toggle. */
+export async function countArchived(formSlug: string): Promise<number> {
+  const sql = getDb();
+  const rows = await sql`
+    SELECT COUNT(*)::int AS n FROM submissions
+    WHERE form_slug = ${formSlug} AND deleted_at IS NOT NULL
+  ` as Row[];
+  return rows[0]?.n ?? 0;
+}
+
+/** Hide a submission from the panel. The row and its answers are kept. */
+export async function archiveSubmission(id: string): Promise<boolean> {
+  const sql = getDb();
+  const rows = await sql`
+    UPDATE submissions SET deleted_at = NOW()
+    WHERE id = ${id} AND deleted_at IS NULL
+    RETURNING id
+  ` as Row[];
+  return rows.length > 0;
+}
+
+export async function restoreSubmission(id: string): Promise<boolean> {
+  const sql = getDb();
+  const rows = await sql`
+    UPDATE submissions SET deleted_at = NULL
+    WHERE id = ${id} AND deleted_at IS NOT NULL
+    RETURNING id
+  ` as Row[];
+  return rows.length > 0;
+}
+
+/**
+ * Removes a submission for good. Only ever applied to something already
+ * archived, so one click can never destroy a live application.
+ */
+export async function purgeSubmission(id: string): Promise<boolean> {
+  const sql = getDb();
+  const rows = await sql`
+    DELETE FROM submissions
+    WHERE id = ${id} AND deleted_at IS NOT NULL
+    RETURNING id
+  ` as Row[];
+  return rows.length > 0;
 }
