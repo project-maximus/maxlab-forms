@@ -962,8 +962,29 @@ const worldTimesHiring: FormConfig = {
           id: 'work_samples',
           type: 'file',
           label: 'Work samples',
-          hint: 'Optional. Case studies, code, design exports, a test plan, anything relevant. Multiple files are fine.',
+          hint: 'Required. Show us something you have actually made: case studies, code, designs, edited video, a campaign report, a test plan. Whatever is closest to the role you are applying for. Multiple files are fine.',
           multiple: true,
+          required: true,
+        },
+      ],
+    },
+
+    // ── Ideas (always shown) ─────────────────────────────────────────────────
+    // Deliberately a shared section rather than one copy per track: every
+    // applicant answers it, and it stays a single field to read and export.
+    {
+      id: 'ideas',
+      num: '09',
+      title: 'Your ideas for World Times',
+      description: 'The one question we ask everybody, whichever role you applied for.',
+      fields: [
+        {
+          id: 'improvement_ideas',
+          type: 'textarea',
+          label: 'If you had to improve, create or ideate something for World Times, what would it be?',
+          hint: 'Give us at least two ideas. They can be about anything: the website, how students are taught, our social channels, how the office runs, or something that does not exist yet. We are reading how you think and whether you have actually looked at us, not whether the idea is perfect.',
+          rows: 8,
+          required: true,
         },
       ],
     },
