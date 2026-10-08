@@ -982,7 +982,7 @@ const worldTimesHiring: FormConfig = {
           id: 'improvement_ideas',
           type: 'textarea',
           label: 'If you had to improve, create or ideate something for World Times, what would it be?',
-          hint: 'Give us at least two ideas. They can be about anything: the website, how students are taught, our social channels, how the office runs, or something that does not exist yet. We are reading how you think and whether you have actually looked at us, not whether the idea is perfect.',
+          hint: 'Give us at least two ideas.',
           rows: 8,
           required: true,
         },
